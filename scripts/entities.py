@@ -91,6 +91,11 @@ class Prefab():
 class Character(Prefab):
     """
     Representa un prefab jugable con animaciones y armas, en este caso Chester el gato.
+    ACCIONES QUE PUEDE REALIZAR:
+    - Se mueve con las teclas de flecha(arriba, abajo, izquierda y derecha) en la
+    respectiva direccion.
+    - Dispara con la barra espaciadora.
+    - Cambia de arma con la tecla 1.
 
     Attributes:
         weapons (list): Lista de armas disponibles para el prefab.
