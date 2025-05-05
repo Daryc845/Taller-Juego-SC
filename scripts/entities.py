@@ -258,6 +258,8 @@ class Weapon(Prefab, ABC):
     def shoot(self):
         """
         Dispara el arma, reduciendo la munición restante.
+        Adicionalmente, crea una nueva bala y la agrega a la lista de balas disparadas.
+        Esto es con el fin de tener control e información de las balas disparadas.
         """
         self.remaining_munition -= 1
         self.bullets_fired.append(Bullet(self.x, self.y, self.direction, 100,self.bullet_image))
