@@ -3,7 +3,9 @@ import os
 
 # --- Initial Setup ---
 pygame.init()
-WIDTH, HEIGHT = 800, 600
+info = pygame.display.Info()
+WIDTH, HEIGHT = info.current_w, info.current_h
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 60
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Character with Animations")
@@ -18,13 +20,9 @@ WEAPON_SHOTGUN_FOLDER = os.path.join(WEAPONS_FOLDER, "weapon_3-shotgun") # Carpe
 WEAPON_RAYGUN_FOLDER = os.path.join(WEAPONS_FOLDER, "weapon_4-raygun") # Carpeta donde se encuentran los recursos graficos de la pistola de rayos
 CHARACTER_FOLDER = os.path.join(RESOURCES_FOLDER, "character - Chester") # Carpeta donde se encuentran los recursos graficos del personaje Chester
 FRAME_CHANGE_EVERY = 1.117    # Cambia los frames cada 1.025 segundos
-SCALE_FACTOR = 0.2  # Ajusta el tamaño de las imágenes a un 20% de su tamaño original
+SCALE_FACTOR = 0.2  # Ajusta el tamaño de las imágenes a un 20% de su tamaño original (USAR PARA AJUSTAR EL TAMAÑO DE LAS IMÁGENES)
 background_image = pygame.image.load(os.path.join(RESOURCES_FOLDER, "backgrounds", "bg.png"))
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))  # Ajustar al tamaño de la pantalla
-
-# --- Colors ---
-BACKGROUND_COLOR = (40, 40, 40)
-
 
 # --- Load Animations ---
 def load_animations(directions):
@@ -44,7 +42,7 @@ def load_animations(directions):
         ValueError: Si no se encuentran imágenes en alguna de las carpetas.
     """
     animations = {}
-    max_dimensions = {}  # Store max size per direction
+    max_dimensions = {}  # Guarda el tamaño maximo de cada direccion para ajustar el tamaño de las imagenes
     for key, folder_path in directions.items():
         frames = []
         max_width, max_height = 0, 0
