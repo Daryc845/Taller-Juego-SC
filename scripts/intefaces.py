@@ -4,6 +4,10 @@ class IModel(ABC):
     @abstractmethod
     def set_presenter(self, presenter):
         pass
+    
+    @abstractmethod
+    def start_game(self):
+        pass
 
 class IView(ABC):
     @abstractmethod
@@ -11,4 +15,6 @@ class IView(ABC):
         pass
 
 class IPresenter(ABC):
-    pass
+    @abstractmethod
+    def start_game(self):
+        pass

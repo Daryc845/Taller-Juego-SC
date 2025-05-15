@@ -6,3 +6,6 @@ class Presenter(IPresenter):
         self.model = model
         self.view.set_presenter(self)
         self.model.set_presenter(self)
+
+    def start_game(self):
+        self.model.start_game()
