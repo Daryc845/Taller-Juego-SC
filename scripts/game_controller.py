@@ -1,5 +1,8 @@
-from game_config_persistence import *
-from entities import *
+from scripts.game_config_persistence import *
+from scripts.entities import *
+from scripts.intefaces import IView, IPresenter
+from scripts.presenter import Presenter
+from scripts.model import Model
 import sys
 
 """
@@ -17,7 +20,7 @@ character = Character(WIDTH // 2, HEIGHT // 2, {
 })
 
 # --- Escena del juego ---
-class GameScene:
+class GameScene(IView):
     """
     Clase que representa una escena del juego. Maneja la lógica de eventos, actualiza el estado del juego y dibuja en pantalla.
     DEBE EDITARSE PARA HACERLA MAS GENERALIZADA Y QUE PUEDA SER REUTILIZADA EN OTRAS ESCENAS.
@@ -27,8 +30,12 @@ class GameScene:
     """
     
     def __init__(self):
+        self.presenter = None
         self.character = character
         self.next_scene = None  # Para permitir cambios de escena en el futuro
+
+    def set_presenter(self, presenter: IPresenter):
+        self.presenter = presenter
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -54,10 +61,9 @@ class GameScene:
 # --- Ciclo principal ---
 def main():
     current_scene = GameScene()
+    model = Model()
+    presenter = Presenter(current_scene, model)
 
     while True:
         current_scene.play() #Escena de combate
         clock.tick(FPS)
-
-if __name__ == "__main__":
-    main()
