@@ -59,4 +59,5 @@ def main():
         current_scene.play() #Escena de combate
         clock.tick(FPS)
 
-main()
+if __name__ == "__main__":
+    main()
