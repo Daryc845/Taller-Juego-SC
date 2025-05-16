@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import game_config_persistence as gcp
+import scripts.game_config_persistence as gcp
 import os
 
 class Prefab():
