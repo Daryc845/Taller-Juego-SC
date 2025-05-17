@@ -1,9 +1,10 @@
-from scripts.game_config_persistence import *
-from scripts.entities import *
+from scripts.game_configs import WIDTH, HEIGHT, FPS, screen, background_image, clock
+from scripts.game_entities import Character
 from scripts.intefaces import IView, IPresenter
 from scripts.presenter import Presenter
 from scripts.model import Model
 import sys
+import pygame
 
 """
 Módulo principal del juego. Configura la pantalla, carga los recursos y maneja el bucle principal del juego.
@@ -12,12 +13,7 @@ y ESCENAS.
 """
 
 # --- Crea a Chester ---
-character = Character(WIDTH // 2, HEIGHT // 2, {
-    "up": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_backward"),
-    "down": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_forward"),
-    "left": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_left"),
-    "right": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_right")
-})
+character = Character(WIDTH // 2, HEIGHT // 2)
 
 # --- Escena del juego ---
 class GameScene(IView):
