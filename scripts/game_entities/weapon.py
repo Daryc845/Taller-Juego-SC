@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from scripts.game_entities.prefab import Prefab
+from scripts.game_configs import FRAME_CHANGE_EVERY
 from scripts.game_entities.bullet import Bullet
-from scripts.game_persistence import load_image
+from scripts.game_persistence import load_image, load_animations, load_idle_images
 import os
 import pygame
 
-class Weapon(Prefab, ABC):
+class Weapon(ABC):
     """
     Representa un arma con animaciones y funcionalidad de disparo.
 
@@ -17,13 +17,21 @@ class Weapon(Prefab, ABC):
         bullet_image (pygame.Surface): Imagen de la bala disparada por el arma.
     """
 
-    def __init__(self, x, y, directions, bullet_folder_url, frameUpdate=None):
-        super().__init__(x, y, directions, frameUpdate)
+    def __init__(self, x, y, directions, bullet_folder_url, frame_update=None):
+        self.x = x
+        self.y = y
+        self.direction = "down"
+        self.moving = False
+        self.speed = 5
+        self.cycle_count = 0
+        self.idles = load_idle_images(directions)
+        self.animations, self.max_dimensions = load_animations(directions)
+        self.frame_update = frame_update if frame_update else FRAME_CHANGE_EVERY
         self.bullet_image = load_image(os.path.join(bullet_folder_url, "bullet.png"))
         self.shooting = False
         self.max_munition = 100
         self.remaining_munition = self.max_munition
-        self.bullets_fired = []
+        self.bullets_fired: list[Bullet] = []
 
     def set_position(self, x, y):
         """
@@ -47,8 +55,24 @@ class Weapon(Prefab, ABC):
         Args:
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
-        super().do_action(keys)
         self.shooting = False
+        self.moving = False
+        if keys[pygame.K_UP]:
+            self.direction = "up"
+            self.y -= self.speed
+            self.moving = True
+        elif keys[pygame.K_DOWN]:
+            self.direction = "down"
+            self.y += self.speed
+            self.moving = True
+        elif keys[pygame.K_LEFT]:
+            self.direction = "left"
+            self.x -= self.speed
+            self.moving = True
+        elif keys[pygame.K_RIGHT]:
+            self.direction = "right"
+            self.x += self.speed
+            self.moving = True
         if keys[pygame.K_SPACE]:
             self.shooting = True
 
@@ -60,7 +84,6 @@ class Weapon(Prefab, ABC):
         """
         self.remaining_munition -= 1
         self.bullets_fired.append(Bullet(self.x, self.y, self.direction, 100,self.bullet_image))
-            
 
     def update_animation(self):
         """
@@ -83,12 +106,10 @@ class Weapon(Prefab, ABC):
             self.current_frame = (self.current_frame + 1) % len(self.animations[self.direction])
         else:
             self.current_frame = 0
-            print("No munition left")
-            #Debe remplazarse a un mensaje en pantalla que indique que no hay munición.
         if self.current_frame == 1:
             self.shoot()
     
-    def draw_bullets(self, surface):
+    def draw_bullets(self, surface: pygame.Surface):
         """
         Dibuja las balas disparadas por el arma en la superficie proporcionada.
         """
@@ -99,7 +120,7 @@ class Weapon(Prefab, ABC):
             else:
                 self.bullets_fired.remove(bullet)
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.Surface):
         """
         Dibuja el arma en la superficie proporcionada.
 

@@ -1,6 +1,7 @@
 from scripts.game_entities.prefab import Prefab
 from scripts.game_entities.weapon import Weapon
 from scripts.game_entities.weapon_types import Submachine, Rifle, Shotgun, Raygun
+from scripts.game_entities.data_models.data_models import PrefabData
 import pygame
 import os
 from scripts.game_configs import CHARACTER_FOLDER
@@ -20,18 +21,21 @@ class Character(Prefab):
         change_weapon_delay_counter (int): Contador para evitar cambios rápidos de arma.
     """
 
-    def __init__(self, x, y, frame_update=None):
+    def __init__(self, prefab_data: PrefabData, frame_update=None):
         dirs = {
             "up": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_backward"),
             "down": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_forward"),
             "left": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_left"),
             "right": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_right")
         }
-        super().__init__(x, y, dirs, frame_update)
+        super().__init__(prefab_data, dirs, frame_update)
         self.weapon_index = 0
-        self.weapons : list[Weapon] = [Submachine(x, y - 35), Rifle(x, y - 35), Shotgun(x, y - 35), Raygun(x, y - 35)]
-        self.weapons[self.weapon_index].x = x
-        self.weapons[self.weapon_index].y = y - 35
+        self.weapons : list[Weapon] = [Submachine(prefab_data.x, prefab_data.y - 35), 
+            Rifle(prefab_data.x, prefab_data.y - 35), 
+            Shotgun(prefab_data.x, prefab_data.y - 35), 
+            Raygun(prefab_data.x, prefab_data.y - 35)]
+        self.weapons[self.weapon_index].x = prefab_data.x
+        self.weapons[self.weapon_index].y = prefab_data.y - 35
         self.change_weapon_delay_counter = 50
 
     def add_weapon(self, weapon: Weapon):
@@ -45,10 +49,19 @@ class Character(Prefab):
             ValueError: Si ya hay 4 armas en el inventario.
         """
         if len(self.weapons) < 4:
-            self.weapons.append(weapon.set_position(self.x, self.y - 35))
+            self.weapons.append(weapon.set_position(self.prefab_data.x, self.prefab_data.y - 35))
         else:
             print("Cannot add more weapons. Maximum of 4 reached.")
             #Debe remplazarse a un mensaje en pantalla que indique que no se pueden agregar más armas.
+
+    def leave_weapon(self, weapon: Weapon):
+        """
+        Elimina un arma del inventario de Chester.
+
+        Args:
+            weapon (Weapon): El arma a eliminar.
+        """
+        self.weapons.remove(weapon)
 
     def do_action(self, keys):
         """
@@ -108,12 +121,24 @@ class Character(Prefab):
         Args:
             surface (pygame.Surface): Superficie donde se dibujará el prefab.
         """
-        if self.direction == "up" or self.direction == "down":
-            super().draw(surface)
-            self.draw_weapons_bullets(surface)
-            self.weapons[self.weapon_index].draw(surface)
-            
-        else:
-            self.draw_weapons_bullets(surface)
-            self.weapons[self.weapon_index].draw(surface)
-            super().draw(surface)
+        super().draw(surface)
+        title_surface = self.font.render("ARMAS", True, (255, 255, 255))
+        surface.blit(title_surface, (10, 40 - 25))
+        for i, weapon in enumerate(self.weapons):
+            self.draw_munition(surface, weapon, 10, 50 + i * 45, i == self.weapon_index)
+        self.draw_weapons_bullets(surface)
+        self.weapons[self.weapon_index].draw(surface)
+
+    def draw_munition(self, surface: pygame.Surface, weapon: Weapon, x, y, selected=False):
+        background_color = (60, 60, 60, 200) if selected else (40, 40, 40, 150)
+        border_color = (255, 255, 255) if selected else (100, 100, 100)
+        bg_surface = pygame.Surface((120, 40), pygame.SRCALPHA)
+        bg_surface.fill(background_color)
+        pygame.draw.rect(bg_surface, border_color, bg_surface.get_rect(), 1)
+        surface.blit(bg_surface, (x, y))
+        weapon_name = weapon.__class__.__name__
+        text_surface = self.small_font.render(weapon_name, True, (255, 255, 255))
+        surface.blit(text_surface, (x + 5, y + 2))
+        ammo_text = f"{weapon.remaining_munition}/{weapon.max_munition}"
+        ammo_surface = self.small_font.render(ammo_text, True, (255, 255, 255))
+        surface.blit(ammo_surface, (x + 5, y + 16))

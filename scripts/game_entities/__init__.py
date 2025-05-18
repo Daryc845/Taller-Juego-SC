@@ -7,6 +7,8 @@ from scripts.game_entities.characters import Character
 from scripts.game_entities.weapon import Weapon
 from scripts.game_entities.bullet import Bullet
 from scripts.game_entities.weapon_types import Submachine, Rifle, Shotgun, Raygun
+from scripts.game_entities.enemies import Enemy
+from scripts.game_entities.enemy_types import EnemyType1, EnemyType2, EnemyType3
 
 __all__ = [
     'Prefab',
@@ -16,5 +18,9 @@ __all__ = [
     'Submachine',
     'Rifle',
     'Shotgun',
-    'Raygun'
+    'Raygun',
+    'Enemy',
+    'EnemyType1',
+    'EnemyType2',
+    'EnemyType3'
 ]
