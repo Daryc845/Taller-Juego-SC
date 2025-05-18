@@ -17,7 +17,8 @@ class Model(IModel):
     def set_presenter(self, presenter: IPresenter):
         self.presenter = presenter
 
-    def generate_game_configs(self):
+    def generate_game_configs(self, difficulty: str):
+        print(f"Dificultad seleccionada: {difficulty}")
         self.environment.reset_environment()
         self.__generate_numbers()
         self.__generate_chests()
@@ -43,7 +44,7 @@ class Model(IModel):
 
     a = 0
 
-    def notify_character_moved(self):
+    def action_on_character_position(self):
         # TODO: calcular disparos, movimientos, y daños al jugador; con agentes
         print(self.environment.get_observation_space())
         for en in self.environment.enemies:

@@ -1,7 +1,7 @@
 import pygame
 from scripts.game_scenes.base_scene import BaseScene
 from scripts.game_scenes.loading_scene import LoadingScene
-from scripts.game_configs import WIDTH, HEIGHT, screen, background_image
+from scripts.game_configs import WIDTH, HEIGHT, screen, background_image, HARD_DIFFICULTY, NORMAL_DIFFICULTY, EASY_DIFFICULTY
 import sys
 
 class StartScene(BaseScene):
@@ -44,13 +44,12 @@ class StartScene(BaseScene):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.easy_button.collidepoint(mouse_pos):
-                    self.difficulty = "fácil"
+                    self.difficulty = EASY_DIFFICULTY
                 elif self.normal_button.collidepoint(mouse_pos):
-                    self.difficulty = "normal"
+                    self.difficulty = NORMAL_DIFFICULTY
                 elif self.hard_button.collidepoint(mouse_pos):
-                    self.difficulty = "difícil"
+                    self.difficulty = HARD_DIFFICULTY
                 elif self.start_button.collidepoint(mouse_pos):
-                    print(f"Dificultad seleccionada: {self.difficulty}")
                     self.next_scene = LoadingScene(self.difficulty, self.load_function)
     
     def update(self):

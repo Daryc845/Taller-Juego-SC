@@ -26,7 +26,7 @@ class GameScene(IView):
         self.enemies : list[Enemy] = []
         self.next_scene = None  # Para permitir cambios de escena en el futuro
         self.is_in_game = False
-        self.start_scene = StartScene(load_function=lambda: self.presenter.generate_game_configs())
+        self.start_scene = StartScene(load_function=lambda x: self.presenter.generate_game_configs(x))
 
     def set_presenter(self, presenter: IPresenter):
         self.presenter = presenter
@@ -78,11 +78,10 @@ class GameScene(IView):
     def update(self):
         keys = pygame.key.get_pressed()
         self.character.do_action(keys)
-        if keys[pygame.K_UP] or keys[pygame.K_DOWN] or keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]:
-            self.presenter.notify_character_moved()
+        self.character.update_animation()
         if keys[pygame.K_SPACE]:
             self.presenter.notify_character_shoot()
-        self.character.update_animation()
+        self.presenter.action_on_character_position()
         for enemy in self.enemies:
             enemy.update_animation()
 

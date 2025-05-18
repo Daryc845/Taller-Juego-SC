@@ -22,7 +22,7 @@ class LoadingScene(BaseScene):
         self.circle_radius = 40
         self.dot_radius = 8
         self.num_dots = 12
-        threading.Thread(target=load_function, daemon=True).start()
+        threading.Thread(target=lambda: load_function(difficulty), daemon=True).start()
     
     def update(self):
         self.rotation_angle = (self.rotation_angle + 5) % 360

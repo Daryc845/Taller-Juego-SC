@@ -11,6 +11,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Character with Animations")
 clock = pygame.time.Clock()
 
+EASY_DIFFICULTY = "fácil"
+NORMAL_DIFFICULTY = "normal"
+HARD_DIFFICULTY = "difícil"
+
 # --- Parametros de animación ---
 RESOURCES_FOLDER = "resources" # Carpeta donde se encuentran los recursos graficos
 WEAPONS_FOLDER = os.path.join(RESOURCES_FOLDER, "weapons") # Carpeta donde se encuentran los recursos graficos de las armas

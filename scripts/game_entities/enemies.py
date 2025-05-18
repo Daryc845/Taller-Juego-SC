@@ -12,10 +12,8 @@ class Enemy(Prefab, ABC):
         super().__init__(prefab_data, directions, frame_update, has_idles=False)
         self.direction = "right"
         self.last_direction = "right"
-        self.moving = True
+        self.moving = False
         self.attacking = False
-        self.attack_cooldown = 30
-        self.attack_timer = 0
         self.attack_animations, self.attack_max_dimensions = load_animations(self.get_attack_directions())
     
     @abstractmethod
@@ -40,8 +38,8 @@ class Enemy(Prefab, ABC):
         Realiza un ataque al objetivo.
         """
         self.attacking = True
-        self.attack_timer = self.attack_cooldown
-        self.current_frame = 0
+        if not self.attacking:
+            self.current_frame = 0
         self.moving = False
     
     def update_animation(self):
@@ -89,14 +87,17 @@ class ShooterEnemy(Enemy, ABC):
         bullet_path = os.path.join(WEAPON_RAYGUN_FOLDER, "bullet.png")
         self.bullet_image = load_image(bullet_path)
         self.bullets_fired : list[Bullet] = []
+        self.max_bullets_per_shot = 5
 
     @abstractmethod
     def get_attack_directions(self):
         pass
 
     def attack(self):
-        self.bullets_fired.clear()
         super().attack()
+        ca_add_bullet = list(filter(lambda x: x.alive, self.bullets_fired))
+        if len(ca_add_bullet) >= self.max_bullets_per_shot:
+            return
         bullet = Bullet(self.prefab_data.x + (40 if "right" in self.direction else -40), self.prefab_data.y - 40, self.direction, 100, self.bullet_image)
         self.bullets_fired.append(bullet)
 

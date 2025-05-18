@@ -8,14 +8,14 @@ class Presenter(IPresenter):
         self.view.set_presenter(self)
         self.model.set_presenter(self)
 
-    def generate_game_configs(self):
-        self.model.generate_game_configs()
+    def generate_game_configs(self, difficulty: str):
+        self.model.generate_game_configs(difficulty)
 
     def show_character(self, prefab_character: PrefabData):
         self.view.show_character(prefab_character)
 
-    def notify_character_moved(self):
-        self.model.notify_character_moved()
+    def action_on_character_position(self):
+        self.model.action_on_character_position()
 
     def notify_character_shoot(self):
         self.model.notify_character_shoot()

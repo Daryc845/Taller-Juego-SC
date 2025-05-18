@@ -7,11 +7,11 @@ class IModel(ABC):
         pass
     
     @abstractmethod
-    def generate_game_configs(self):
+    def generate_game_configs(self, difficulty: str):
         pass
 
     @abstractmethod
-    def notify_character_moved(self):
+    def action_on_character_position(self):
         pass
 
     @abstractmethod
@@ -41,7 +41,7 @@ class IView(ABC):
 
 class IPresenter(ABC):
     @abstractmethod
-    def generate_game_configs(self):
+    def generate_game_configs(self, difficulty: str):
         pass
 
     @abstractmethod
@@ -49,7 +49,7 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def notify_character_moved(self):
+    def action_on_character_position(self):
         pass
 
     @abstractmethod
