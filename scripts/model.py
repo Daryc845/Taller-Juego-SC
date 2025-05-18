@@ -46,7 +46,7 @@ class Model(IModel):
 
     def action_on_character_position(self):
         # TODO: calcular disparos, movimientos, y daños al jugador; con agentes
-        print(self.environment.get_observation_space())
+        #print(self.environment.get_observation_space())
         for en in self.environment.enemies:
             self.presenter.do_enemy_attack(True, en.id)
             #self.presenter.do_enemy_move("up", en.id)
@@ -54,9 +54,13 @@ class Model(IModel):
             #self.presenter.do_enemy_move("right", en.id)
             #self.presenter.do_enemy_move("left", en.id)
 
-    def notify_character_shoot(self):
+    def action_on_character_shoot(self):
         # TODO: calcular daños a enemigos, con montecarlo
-        pass
+        # direcciones: up, down, left, right
+        # tipos: submachine (cada tiro x4 balas), rifle (cada tiro x3 balas), shotgun (cada tiro x1 bala), raygun (cada tiro x1 bala)
+        print(self.environment.character.current_bullet_type, 
+              self.environment.character.current_shoot_direction,
+              self.environment.character.bullets_count)
 
     def __get_next_pseudo_random_number(self):
         if self.current_number >= len(self.numbers):

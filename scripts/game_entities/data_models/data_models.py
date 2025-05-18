@@ -8,6 +8,7 @@ class PrefabData:
         self.max_life = life
         self.current_shoot_direction: str = None
         self.current_bullet_type: str = None
+        self.bullets_count = 0
 
 class EnvironmentData:
     def __init__(self, width: int, height: int):

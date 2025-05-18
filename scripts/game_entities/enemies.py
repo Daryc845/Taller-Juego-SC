@@ -107,3 +107,5 @@ class ShooterEnemy(Enemy, ABC):
             if bullet.alive:
                 bullet.move()
                 bullet.draw(surface)
+            else:
+                self.bullets_fired.remove(bullet)

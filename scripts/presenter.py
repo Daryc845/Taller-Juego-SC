@@ -17,8 +17,8 @@ class Presenter(IPresenter):
     def action_on_character_position(self):
         self.model.action_on_character_position()
 
-    def notify_character_shoot(self):
-        self.model.notify_character_shoot()
+    def action_on_character_shoot(self):
+        self.model.action_on_character_shoot()
 
     def show_enemy(self, prefab_enemy: PrefabData, type: str):
         self.view.show_enemy(prefab_enemy, type)

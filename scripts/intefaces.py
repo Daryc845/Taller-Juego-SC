@@ -15,7 +15,7 @@ class IModel(ABC):
         pass
 
     @abstractmethod
-    def notify_character_shoot(self):
+    def action_on_character_shoot(self):
         pass
 
 class IView(ABC):
@@ -53,7 +53,7 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def notify_character_shoot(self):
+    def action_on_character_shoot(self):
         pass
 
     @abstractmethod

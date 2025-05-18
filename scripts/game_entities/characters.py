@@ -103,6 +103,19 @@ class Character(Prefab):
         """
         super().update_animation()
         self.weapons[self.weapon_index].update_animation()
+        wp = self.weapons[self.weapon_index]
+        if wp.shooting:
+            name = wp.__class__.__name__
+            self.prefab_data.current_shoot_direction = wp.direction
+            self.prefab_data.bullets_count = wp.max_munition - wp.remaining_munition
+            if name == "Submachine":
+                self.prefab_data.current_bullet_type = "submachine"
+            elif name == "Rifle":
+                self.prefab_data.current_bullet_type = "rifle"
+            elif name == "Shotgun":
+                self.prefab_data.current_bullet_type = "shotgun"
+            elif name == "Raygun":
+                self.prefab_data.current_bullet_type = "raygun"
         
     def draw_weapons_bullets(self, surface):
         """
