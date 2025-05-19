@@ -8,7 +8,7 @@ WIDTH, HEIGHT = info.current_w, info.current_h
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 60
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Character with Animations")
+pygame.display.set_caption("Legend of the Shadow Slayer")
 clock = pygame.time.Clock()
 
 EASY_DIFFICULTY = "fácil"

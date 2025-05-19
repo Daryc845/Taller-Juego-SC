@@ -136,12 +136,12 @@ class Character(Prefab):
             surface (pygame.Surface): Superficie donde se dibujará el prefab.
         """
         super().draw(surface)
+        self.draw_weapons_bullets(surface)
+        self.weapons[self.weapon_index].draw(surface)
         title_surface = self.font.render("ARMAS", True, (255, 255, 255))
         surface.blit(title_surface, (10, 40 - 25))
         for i, weapon in enumerate(self.weapons):
             self.draw_munition(surface, weapon, 10, 50 + i * 45, i == self.weapon_index)
-        self.draw_weapons_bullets(surface)
-        self.weapons[self.weapon_index].draw(surface)
 
     def draw_munition(self, surface: pygame.Surface, weapon: Weapon, x, y, selected=False):
         background_color = (60, 60, 60, 200) if selected else (40, 40, 40, 150)
