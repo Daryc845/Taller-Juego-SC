@@ -36,7 +36,11 @@ class IView(ABC):
         pass
 
     @abstractmethod
-    def do_enemy_attack(self, with_move, enemy_id: int):
+    def do_enemy_attack(self, with_move: bool, enemy_id: int):
+        pass
+
+    @abstractmethod
+    def show_chest(self, weapon_type: str):
         pass
 
 class IPresenter(ABC):
@@ -65,5 +69,9 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def do_enemy_attack(self, with_move, enemy_id: int):
+    def do_enemy_attack(self, with_move: bool, enemy_id: int):
+        pass
+
+    @abstractmethod
+    def show_chest(self, weapon_type: str):
         pass

@@ -50,6 +50,9 @@ class GameScene(IView):
             res = res[0]
             res.move(direction)
 
+    def show_chest(self, weapon_type: str):
+        pass
+
     def run_game(self):
         while True:
             if self.is_in_game:

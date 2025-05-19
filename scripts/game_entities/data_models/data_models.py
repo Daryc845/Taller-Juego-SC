@@ -9,6 +9,7 @@ class PrefabData:
         self.current_shoot_direction: str = None
         self.current_bullet_type: str = None
         self.bullets_count = 0
+        self.weapon_index = 0
 
 class EnvironmentData:
     def __init__(self, width: int, height: int):

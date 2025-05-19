@@ -108,6 +108,7 @@ class Character(Prefab):
             name = wp.__class__.__name__
             self.prefab_data.current_shoot_direction = wp.direction
             self.prefab_data.bullets_count = wp.max_munition - wp.remaining_munition
+            self.prefab_data.weapon_index = self.weapon_index
             if name == "Submachine":
                 self.prefab_data.current_bullet_type = "submachine"
             elif name == "Rifle":

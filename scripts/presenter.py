@@ -28,3 +28,6 @@ class Presenter(IPresenter):
 
     def do_enemy_move(self, direction, enemy_id):
         self.view.do_enemy_move(direction, enemy_id)
+
+    def show_chest(self, weapon_type: str):
+        self.view.show_chest(weapon_type)
