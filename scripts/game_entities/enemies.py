@@ -1,7 +1,7 @@
 from scripts.game_entities.prefab import Prefab
 from scripts.game_configs import WEAPON_RAYGUN_FOLDER
 from scripts.game_entities.bullet import Bullet
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 from scripts.game_persistence import load_image, load_animations
 import os
 import pygame

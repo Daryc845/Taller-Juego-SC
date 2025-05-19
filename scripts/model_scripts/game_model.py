@@ -1,4 +1,4 @@
-from scripts.game_entities.data_models.data_models import PrefabData, EnvironmentData
+from scripts.game_entities.data_models import PrefabData, EnvironmentData
 from scripts.game_configs import WIDTH, HEIGHT
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable

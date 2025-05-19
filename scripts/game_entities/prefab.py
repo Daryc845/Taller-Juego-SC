@@ -1,4 +1,4 @@
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 from scripts.game_configs import FRAME_CHANGE_EVERY
 from scripts.game_persistence import load_animations, load_idle_images
 import pygame

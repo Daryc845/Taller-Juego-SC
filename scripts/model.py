@@ -1,5 +1,5 @@
 from scripts.intefaces import IModel, IPresenter
-from scripts.model_scripts.game_model import GameModel
+from scripts.model_scripts import GameModel
 
 class Model(IModel):
     def __init__(self):

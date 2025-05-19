@@ -1,8 +1,8 @@
 from scripts.game_configs import FPS, screen, background_image, clock
 from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy
 from scripts.intefaces import IView, IPresenter
-from scripts.game_entities.data_models.data_models import PrefabData
-from scripts.game_scenes.start_scene import StartScene
+from scripts.game_entities.data_models import PrefabData
+from scripts.game_scenes import StartScene
 import sys
 import pygame
 

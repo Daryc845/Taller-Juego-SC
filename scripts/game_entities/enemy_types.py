@@ -1,5 +1,5 @@
 from scripts.game_configs import ENEMY_1_FOLDER, ENEMY_2_FOLDER, ENEMY_3_FOLDER
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 from scripts.game_entities.enemies import Enemy,ShooterEnemy
 import os
 

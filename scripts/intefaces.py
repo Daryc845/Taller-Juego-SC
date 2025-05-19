@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 
 class IModel(ABC):
     @abstractmethod

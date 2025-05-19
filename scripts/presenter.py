@@ -1,5 +1,5 @@
 from scripts.intefaces import IPresenter, IView, IModel
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 
 class Presenter(IPresenter):
     def __init__(self, view: IView, model: IModel):

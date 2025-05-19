@@ -1,7 +1,7 @@
 from scripts.game_entities.prefab import Prefab
 from scripts.game_entities.weapon import Weapon
 from scripts.game_entities.weapon_types import Submachine, Rifle, Shotgun, Raygun
-from scripts.game_entities.data_models.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData
 import pygame
 import os
 from scripts.game_configs import CHARACTER_FOLDER
