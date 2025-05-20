@@ -13,6 +13,7 @@ class StartScene(BaseScene):
         self.load_function = load_function
         self.next_scene = None
         self.difficulty = "normal"
+        self.game_over = False
         pygame.font.init()
         self.title_font = pygame.font.SysFont("Arial", 48, bold=True)
         self.button_font = pygame.font.SysFont("Arial", 36)
@@ -59,6 +60,9 @@ class StartScene(BaseScene):
         screen.blit(background_image, (0, 0))
         title_text = self.title_font.render("Legend of the Shadow Slayer", True, self.WHITE)
         screen.blit(title_text, (WIDTH//2 - title_text.get_width()//2, 100))
+        if self.game_over:
+            game_over_text = self.text_font.render("Has perdido", True, (255, 0, 0))
+            screen.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//2 - 100))
         diff_text = self.text_font.render("Selecciona la dificultad:", True, self.WHITE)
         screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, HEIGHT//2 - 50))
         pygame.draw.rect(screen, self.GREEN if self.difficulty == "fácil" else self.GRAY, self.easy_button)

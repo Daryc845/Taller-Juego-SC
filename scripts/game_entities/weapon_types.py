@@ -28,7 +28,7 @@ class Submachine(Weapon):
         }   
     
     def get_bullet_damage(self):
-        return 3
+        return 5
     
     def get_bullet_type(self):
         return "submachine"
@@ -59,7 +59,7 @@ class Rifle(Weapon):
         }
     
     def get_bullet_damage(self):
-        return 5
+        return 7
     
     def get_bullet_type(self):
         return "rifle"
@@ -90,7 +90,7 @@ class Shotgun(Weapon):
         }
 
     def get_bullet_damage(self):
-        return 7   
+        return 8
     
     def get_bullet_type(self):
         return "shotgun"

@@ -28,3 +28,9 @@ class Presenter(IPresenter):
 
     def show_chest(self, weapon_type: str):
         self.view.show_chest(weapon_type)
+
+    def delete_enemy(self, enemy_id: int):
+        self.view.delete_enemy(enemy_id)
+
+    def character_death(self):
+        self.view.character_death()

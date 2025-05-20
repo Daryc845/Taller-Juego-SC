@@ -24,7 +24,7 @@ class EnvironmentData:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.character: PrefabData = PrefabData(width // 2, height // 2, "down", 100)
+        self.character: PrefabData = PrefabData(width // 2, height // 2, "down", 500)
         self.enemies: list[PrefabData] = []
         self.character_points = 0
 
@@ -43,5 +43,7 @@ class EnvironmentData:
     def reset_environment(self):
         self.character.x = self.width // 2
         self.character.y = self.height // 2
-        self.character.life = 100
+        self.character.direction = "down"
+        self.character.life = 500
+        self.character.attacks.clear()
         self.enemies.clear()

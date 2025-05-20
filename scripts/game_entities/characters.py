@@ -29,13 +29,16 @@ class Character(Prefab):
             "right": os.path.join(CHARACTER_FOLDER, "Chester-animation-walking_right")
         }
         super().__init__(prefab_data, dirs, frame_update)
+        self.reset_character()
+
+    def reset_character(self):
         self.weapon_index = 0
-        self.weapons : list[Weapon] = [Submachine(prefab_data.x, prefab_data.y - 35), 
-            Rifle(prefab_data.x, prefab_data.y - 35), 
-            Shotgun(prefab_data.x, prefab_data.y - 35), 
-            Raygun(prefab_data.x, prefab_data.y - 35)]
-        self.weapons[self.weapon_index].x = prefab_data.x
-        self.weapons[self.weapon_index].y = prefab_data.y - 35
+        self.weapons = [Submachine(self.prefab_data.x, self.prefab_data.y - 35), 
+            Rifle(self.prefab_data.x, self.prefab_data.y - 35), 
+            Shotgun(self.prefab_data.x, self.prefab_data.y - 35), 
+            Raygun(self.prefab_data.x, self.prefab_data.y - 35)]
+        self.weapons[self.weapon_index].x = self.prefab_data.x
+        self.weapons[self.weapon_index].y = self.prefab_data.y - 35
         self.change_weapon_delay_counter = 50
         self.bullets_count_id = 0
 

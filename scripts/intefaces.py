@@ -39,6 +39,14 @@ class IView(ABC):
     def show_chest(self, weapon_type: str):
         pass
 
+    @abstractmethod
+    def delete_enemy(self, enemy_id: int):
+        pass
+
+    @abstractmethod
+    def character_death(self):
+        pass
+
 class IPresenter(ABC):
     @abstractmethod
     def generate_game_configs(self, difficulty: str):
@@ -66,4 +74,12 @@ class IPresenter(ABC):
 
     @abstractmethod
     def show_chest(self, weapon_type: str):
+        pass
+
+    @abstractmethod
+    def delete_enemy(self, enemy_id: int):
+        pass
+
+    @abstractmethod
+    def character_death(self):
         pass

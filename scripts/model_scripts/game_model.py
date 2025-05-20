@@ -20,11 +20,11 @@ class GameModel:
     def generate_enemies(self, difficulty: str, 
                          enemy_generation_function: Callable[[PrefabData, str], None]):
         # TODO: generar enemigos con dificultad, con lineas de espera, al escoger el tipo de enemigo puede ser con markov o montecarlo
-        enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 40, id=1)
+        enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 100, id=1)
         self.environment.add_enemy(enemy1)
-        enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 50, id=2)
+        enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 125, id=2)
         self.environment.add_enemy(enemy2)
-        enemy3 = PrefabData(WIDTH // 4, HEIGHT // 4 * 3, 'right', 70, id=3)
+        enemy3 = PrefabData(WIDTH // 4, HEIGHT // 4 * 3, 'right', 150, id=3)
         self.environment.add_enemy(enemy3)
         enemy_generation_function(self.environment.enemies[0], "type1")
         enemy_generation_function(self.environment.enemies[1], "type2")
@@ -33,6 +33,7 @@ class GameModel:
     def evaluate_character_position_action(self, attack_function: Callable[[bool, int], None], 
                                            move_function: Callable[[str, int], None]):
         # TODO: calcular movimientos, y ataques al jugador, segun el tipo de enemigo; con agentes
+        # cada tipo de enemigo es un agente distinto
         #print(self.environment.get_observation_space())
         for en in self.environment.enemies:
             attack_function(True, en.id)
@@ -42,8 +43,9 @@ class GameModel:
             #move_function("right", en.id)
             #move_function("left", en.id)
 
-    def evaluate_attacks(self, chest_generation_function: Callable[[str], None]):
-        # TODO: calcular daños a enemigos y al jugador, con montecarlo, generar cofres
+    def evaluate_attacks(self, chest_generation_function: Callable[[str], None], 
+                         delete_enemy_function: Callable[[int], None], 
+                         character_death_function: Callable[[], None]):
         character_shoots = list(filter(lambda x: x.alive, self.environment.character.attacks))
         enemies_death: list[PrefabData] = []
         for shoot in character_shoots:
@@ -52,7 +54,7 @@ class GameModel:
                     shoot.alive = False
                     if en.life <= 0:
                         enemies_death.append(en)
-                        #TODO: aumentar puntaje de jugador
+                        self.environment.character_points += 10
                     break
         for en in self.environment.enemies:
             en_shoots = list(filter(lambda x: x.alive, en.attacks))
@@ -60,14 +62,13 @@ class GameModel:
                 if self.__verify_shoot_damage(shoot, self.environment.character, False):
                     shoot.alive = False
                     if self.environment.character.life <= 0:
-                        #TODO: notificar muerte de jugador
-                        pass
+                        character_death_function()
                 elif shoot.type == "melee":
                     shoot.alive = False
         for en in enemies_death:
             self.environment.enemies.remove(en)
-            #TODO: notificar muerte de enemigo
-        # generar cofre si el jugador consigue X puntaje
+            delete_enemy_function(en.id)
+        # TODO: generar cofre si el jugador consigue X puntaje
         self.__generate_chest(chest_generation_function)
 
     def __get_pseudo_random_number(self):
@@ -89,7 +90,7 @@ class GameModel:
             else:
                 return False
         if is_hit:
-            to.life -= (shoot.damage - interval) #TODO: usar montecarlo para aleatorizar daño
+            to.life -= (shoot.damage - interval - self.__get_montecarlo_damage())
             return True
         return False
 
@@ -104,3 +105,12 @@ class GameModel:
         elif shoot_pos >= c_min and shoot_pos <= c_max:
             return True, 2
         return False, 0
+    
+    def __get_montecarlo_damage(self):
+        num = self.__get_pseudo_random_number()
+        if num <= 0.5:
+            return 2
+        elif num <= 0.85:
+            return 1
+        else:
+            return 0

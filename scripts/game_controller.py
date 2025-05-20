@@ -1,4 +1,4 @@
-from scripts.game_configs import FPS, screen, background_image, clock
+from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
 from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
@@ -26,6 +26,7 @@ class GameScene(IView):
         self.enemies : list[Enemy] = []
         self.next_scene = None  # Para permitir cambios de escena en el futuro
         self.is_in_game = False
+        self.is_in_pause = False
         self.start_scene = StartScene(load_function=lambda x: self.presenter.generate_game_configs(x))
 
     def set_presenter(self, presenter: IPresenter):
@@ -34,7 +35,14 @@ class GameScene(IView):
     def show_character(self, prefab_character: PrefabData):
         if self.character is None:
             self.character = Character(prefab_character)
+        else:
+            self.__reset_all()
         self.is_in_game = True
+
+    def __reset_all(self):
+        FPS = 60
+        self.character.reset_character()
+        self.enemies.clear()
 
     def do_enemy_attack(self, with_move, enemy_id):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -53,12 +61,23 @@ class GameScene(IView):
     def show_chest(self, weapon_type: str):
         pass
 
+    def delete_enemy(self, enemy_id: int):
+        enemy = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
+        if len(enemy) > 0:
+            self.enemies.remove(enemy[0])
+
+    def character_death(self):
+        self.start_scene.game_over = True
+        self.start_scene.next_scene = None
+        self.start_scene.draw()
+        self.is_in_game = False
+
     def run_game(self):
         while True:
-            if self.is_in_game:
+            if self.is_in_game and not self.is_in_pause:
                 self.play()
                 clock.tick(FPS)
-            else:
+            elif not self.is_in_game:
                 if self.start_scene.next_scene is not None:
                     self.start_scene.next_scene.play()
                 else:
