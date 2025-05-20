@@ -76,27 +76,28 @@ class Weapon(ABC):
         if keys[pygame.K_SPACE]:
             self.shooting = True
 
-    def shoot(self):
+    def shoot(self, bullet_data_creation):
         """
         Dispara el arma, reduciendo la munición restante.
         Adicionalmente, crea una nueva bala y la agrega a la lista de balas disparadas.
         Esto es con el fin de tener control e información de las balas disparadas.
         """
+        data = bullet_data_creation(self.x, self.y, self.direction, self.get_bullet_damage(), self.get_bullet_type())
         self.remaining_munition -= 1
-        self.bullets_fired.append(Bullet(self.x, self.y, self.direction, 100,self.bullet_image))
+        self.bullets_fired.append(Bullet(data, self.bullet_image))
 
-    def update_animation(self):
+    def update_animation(self, bullet_data_creation):
         """
         Actualiza las animaciones del arma según su estado (disparando o inactiva).
         """
         self.cycle_count += 1
         if self.shooting:
             if self.cycle_count >= self.frame_update:
-                self.evaluate_bullets_and_shoot()
+                self.evaluate_bullets_and_shoot(bullet_data_creation)
         else:
             self.current_frame = 0
         
-    def evaluate_bullets_and_shoot(self):
+    def evaluate_bullets_and_shoot(self, bullet_data_creation):
         """
         Verifica si el arma tiene munición restante y actualiza el cuadro de animación.
         Si no hay munición, muestra un mensaje indicando que no se puede disparar.
@@ -107,14 +108,14 @@ class Weapon(ABC):
         else:
             self.current_frame = 0
         if self.current_frame == 1:
-            self.shoot()
+            self.shoot(bullet_data_creation)
     
     def draw_bullets(self, surface: pygame.Surface):
         """
         Dibuja las balas disparadas por el arma en la superficie proporcionada.
         """
         for bullet in self.bullets_fired:
-            if bullet.alive:
+            if bullet.data.alive:
                 bullet.move()
                 bullet.draw(surface)
             else:
@@ -161,5 +162,19 @@ class Weapon(ABC):
 
         Returns:
             dictionary: diccionario que relaciona las animaciones de una ruta con una dirección particular.
+        """
+        pass
+
+    @abstractmethod
+    def get_bullet_type(self)->str:
+        """
+        Devuelve el tipo de bala que el arma dispara.
+        """
+        pass
+
+    @abstractmethod
+    def get_bullet_damage(self)->int:
+        """
+        Devuelve el daño de la bala que el arma dispara.
         """
         pass

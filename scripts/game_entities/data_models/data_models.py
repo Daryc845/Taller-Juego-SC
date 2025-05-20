@@ -1,27 +1,36 @@
 
-class PrefabData:
-    def __init__(self, x: int, y: int, life: int, id: int = None):
+class AttackData:
+    def __init__(self, id: int, x: int, y: int, damage: int, direction: str, type: str):
         self.id = id
         self.x = x
         self.y = y
+        self.damage = damage
+        self.direction = direction
+        self.type = type # melee, enemy_3_shoot, final_enemy_shoot, submachine, rifle, shotgun, raygun
+        self.alive = True
+
+class PrefabData:
+    def __init__(self, x: int, y: int, direction: str, life: int, id: int = None):
+        self.id = id
+        self.x = x
+        self.y = y
+        self.direction = direction
         self.life = life
         self.max_life = life
-        self.current_shoot_direction: str = None
-        self.current_bullet_type: str = None
-        self.bullets_count = 0
-        self.weapon_index = 0
+        self.max_dimensions = {}
+        self.attacks: list[AttackData] = []
 
 class EnvironmentData:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
-        self.character: PrefabData = PrefabData(width // 2, height // 2, 100)
+        self.character: PrefabData = PrefabData(width // 2, height // 2, "down", 100)
         self.enemies: list[PrefabData] = []
         self.character_points = 0
 
     def get_observation_space(self):
         """
-        Devuelve la observacion del espacio de observacion del agente
+        Devuelve el espacio de observación, para los agentes, que es la posición del personaje.
 
         Returns:
             list: [x, y]

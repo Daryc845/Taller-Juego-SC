@@ -1,9 +1,10 @@
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_configs import FRAME_CHANGE_EVERY
 from scripts.game_persistence import load_animations, load_idle_images
+from abc import ABC
 import pygame
 
-class Prefab():
+class Prefab(ABC):
     """
     Clase base padre para representar un objeto animado en el juego.
 
@@ -25,12 +26,12 @@ class Prefab():
     def __init__(self, prefab_data: PrefabData, directions, frame_update=None, has_idles=True):
         self.prefab_data = prefab_data
         self.speed = 5
-        self.direction = "down"
         self.current_frame = 0
         self.cycle_count = 0
         self.moving = False
         self.idles = load_idle_images(directions) if has_idles else {}
         self.animations, self.max_dimensions = load_animations(directions)
+        self.prefab_data.max_dimensions = self.max_dimensions
         self.frame_update = frame_update if frame_update else FRAME_CHANGE_EVERY
         self.font = pygame.font.SysFont('Arial', 18, bold=True)
         self.small_font = pygame.font.SysFont('Arial', 14)
@@ -59,14 +60,14 @@ class Prefab():
         Args:
             direction (str): Dirección en la que se mueve el objeto ('up', 'down', 'left', 'right').
         """
-        self.direction = direction
-        if self.direction == "up":
+        self.prefab_data.direction = direction
+        if self.prefab_data.direction == "up":
             self.prefab_data.y -= self.speed
-        elif self.direction == "down":
+        elif self.prefab_data.direction == "down":
             self.prefab_data.y += self.speed
-        elif self.direction == "left":
+        elif self.prefab_data.direction == "left":
             self.prefab_data.x -= self.speed
-        elif self.direction == "right":
+        elif self.prefab_data.direction == "right":
             self.prefab_data.x += self.speed
         self.moving = True
 
@@ -79,7 +80,7 @@ class Prefab():
             if self.cycle_count >= FRAME_CHANGE_EVERY:
                 self.cycle_count = 0
                 
-                self.current_frame = (self.current_frame + 1) % len(self.animations[self.direction])
+                self.current_frame = (self.current_frame + 1) % len(self.animations[self.prefab_data.direction])
         else:
             self.current_frame = 0
 
@@ -90,12 +91,12 @@ class Prefab():
         Args:
             surface (pygame.Surface): Superficie donde se dibujará el objeto.
         """
-        if self.moving and self.current_frame < len(self.animations[self.direction]):
-            frame = self.animations[self.direction][self.current_frame]
+        if self.moving and self.current_frame < len(self.animations[self.prefab_data.direction]):
+            frame = self.animations[self.prefab_data.direction][self.current_frame]
         else:
-            frame = self.idles[self.direction]
+            frame = self.idles[self.prefab_data.direction]
 
-        max_width, max_height = self.max_dimensions[self.direction]
+        max_width, max_height = self.max_dimensions[self.prefab_data.direction]
         pos_x = self.prefab_data.x - max_width // 2
         pos_y = self.prefab_data.y - max_height // 2
         surface.blit(frame, (pos_x, pos_y))
@@ -104,8 +105,6 @@ class Prefab():
     def draw_life(self, surface: pygame.Surface, x, y, current_health:int, max_health:int, width=50, height=8, offset_y=-70):
         bar_x = x - width // 2
         bar_y = y + offset_y
-        current_health = current_health // max_health * 100
-        max_health = 100
         pygame.draw.rect(surface, (70, 70, 70), (bar_x, bar_y, width, height))
         health_width = int((current_health / max_health) * width)
         if current_health / max_health > 0.7:

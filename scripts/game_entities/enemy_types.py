@@ -1,9 +1,9 @@
 from scripts.game_configs import ENEMY_1_FOLDER, ENEMY_2_FOLDER, ENEMY_3_FOLDER
 from scripts.game_entities.data_models import PrefabData
-from scripts.game_entities.enemies import Enemy,ShooterEnemy
+from scripts.game_entities.enemies import MeleeEnemy,ShooterEnemy
 import os
 
-class EnemyType1(Enemy):
+class EnemyType1(MeleeEnemy):
     def __init__(self, prefab_data: PrefabData):
         dirs = {
             "left": os.path.join(ENEMY_1_FOLDER, "left"),
@@ -17,7 +17,7 @@ class EnemyType1(Enemy):
             "right": os.path.join(ENEMY_1_FOLDER, "shadow_knight-animation-right_attacking")
         }
 
-class EnemyType2(Enemy):
+class EnemyType2(MeleeEnemy):
     def __init__(self, prefab_data: PrefabData):
         dirs = {
             "left": os.path.join(ENEMY_2_FOLDER, "left"),
@@ -44,6 +44,12 @@ class EnemyType3(ShooterEnemy):
             "left": os.path.join(ENEMY_3_FOLDER, "shadow_wizard-animation-left_attacking"),
             "right": os.path.join(ENEMY_3_FOLDER, "shadow_wizard-animation-right_attacking")
         }
+    
+    def get_shoot_damage(self):
+        return 7
+    
+    def get_shoot_type(self):
+        return "enemy_3_shoot"
 
 class FinalEnemy(ShooterEnemy):
     def __init__(self, prefab_data: PrefabData):
@@ -58,3 +64,9 @@ class FinalEnemy(ShooterEnemy):
             "left": os.path.join(ENEMY_3_FOLDER, "shadow_wizard-animation-left_attacking"),#TODO
             "right": os.path.join(ENEMY_3_FOLDER, "shadow_wizard-animation-right_attacking")#TODO
         }
+    
+    def get_shoot_damage(self):
+        return 9
+    
+    def get_shoot_type(self):
+        return "final_enemy_shoot"

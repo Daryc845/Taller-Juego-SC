@@ -11,11 +11,7 @@ class IModel(ABC):
         pass
 
     @abstractmethod
-    def action_on_character_position(self):
-        pass
-
-    @abstractmethod
-    def action_on_character_shoot(self):
+    def calculate_actions(self):
         pass
 
 class IView(ABC):
@@ -53,11 +49,7 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def action_on_character_position(self):
-        pass
-
-    @abstractmethod
-    def action_on_character_shoot(self):
+    def calculate_actions(self):
         pass
 
     @abstractmethod

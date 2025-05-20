@@ -14,11 +14,9 @@ class Model(IModel):
         self.presenter.show_character(self.game_model.environment.character)
         self.game_model.generate_enemies(difficulty, lambda x, y: self.presenter.show_enemy(x, y))
 
-    def action_on_character_position(self):
+    def calculate_actions(self):
+        self.game_model.evaluate_attacks(lambda x: self.presenter.show_chest(x))
         self.game_model.evaluate_character_position_action(
             lambda x, y: self.presenter.do_enemy_attack(x, y),
             lambda x, y: self.presenter.do_enemy_move(x, y),
         )
-
-    def action_on_character_shoot(self):
-        self.game_model.evaluate_character_shoot(lambda x: self.presenter.show_chest(x))

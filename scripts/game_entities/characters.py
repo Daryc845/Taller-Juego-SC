@@ -1,7 +1,7 @@
 from scripts.game_entities.prefab import Prefab
 from scripts.game_entities.weapon import Weapon
 from scripts.game_entities.weapon_types import Submachine, Rifle, Shotgun, Raygun
-from scripts.game_entities.data_models import PrefabData
+from scripts.game_entities.data_models import PrefabData, AttackData
 import pygame
 import os
 from scripts.game_configs import CHARACTER_FOLDER
@@ -37,6 +37,7 @@ class Character(Prefab):
         self.weapons[self.weapon_index].x = prefab_data.x
         self.weapons[self.weapon_index].y = prefab_data.y - 35
         self.change_weapon_delay_counter = 50
+        self.bullets_count_id = 0
 
     def add_weapon(self, weapon: Weapon):
         """
@@ -101,22 +102,14 @@ class Character(Prefab):
         """
         Actualiza las animaciones del prefab y del arma equipada.
         """
+        def bullet_data_creation(x: int, y: int, direction: str, damage: int, type: str) -> AttackData:
+            data = AttackData(self.bullets_count_id, x, y, damage, direction, type)
+            self.prefab_data.attacks.append(data)
+            self.bullets_count_id += 1
+            return data
         super().update_animation()
-        self.weapons[self.weapon_index].update_animation()
+        self.weapons[self.weapon_index].update_animation(bullet_data_creation)
         wp = self.weapons[self.weapon_index]
-        if wp.shooting:
-            name = wp.__class__.__name__
-            self.prefab_data.current_shoot_direction = wp.direction
-            self.prefab_data.bullets_count = wp.max_munition - wp.remaining_munition
-            self.prefab_data.weapon_index = self.weapon_index
-            if name == "Submachine":
-                self.prefab_data.current_bullet_type = "submachine"
-            elif name == "Rifle":
-                self.prefab_data.current_bullet_type = "rifle"
-            elif name == "Shotgun":
-                self.prefab_data.current_bullet_type = "shotgun"
-            elif name == "Raygun":
-                self.prefab_data.current_bullet_type = "raygun"
         
     def draw_weapons_bullets(self, surface):
         """

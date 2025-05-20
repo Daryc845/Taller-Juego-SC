@@ -82,9 +82,7 @@ class GameScene(IView):
         keys = pygame.key.get_pressed()
         self.character.do_action(keys)
         self.character.update_animation()
-        if keys[pygame.K_SPACE]:
-            self.presenter.action_on_character_shoot()
-        self.presenter.action_on_character_position()
+        self.presenter.calculate_actions()
         for enemy in self.enemies:
             enemy.update_animation()
 
