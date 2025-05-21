@@ -44,13 +44,13 @@ class Prefab(ABC):
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
         self.moving = False
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.move("up")
-        elif keys[pygame.K_DOWN]:
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.move("down")
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.move("left")
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.move("right")
 
     def move(self, direction: str):

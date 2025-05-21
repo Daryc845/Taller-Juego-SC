@@ -19,7 +19,7 @@ class GameModel:
 
     def generate_enemies(self, difficulty: str, 
                          enemy_generation_function: Callable[[PrefabData, str], None]):
-        # TODO: generar enemigos con dificultad, con lineas de espera, al escoger el tipo de enemigo puede ser con markov o montecarlo
+        # TODO: generar enemigos con dificultad, con lineas de espera
         enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 100, id=1)
         self.environment.add_enemy(enemy1)
         enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 125, id=2)
@@ -29,6 +29,10 @@ class GameModel:
         enemy_generation_function(self.environment.enemies[0], "type1")
         enemy_generation_function(self.environment.enemies[1], "type2")
         enemy_generation_function(self.environment.enemies[2], "type3")
+
+    def generate_enemy(self):
+        # TODO: generar enemigo, escoger el tipo de enemigo puede ser con markov o montecarlo
+        pass
 
     def evaluate_character_position_action(self, attack_function: Callable[[bool, int], None], 
                                            move_function: Callable[[str, int], None]):
@@ -42,6 +46,22 @@ class GameModel:
             #move_function("down", en.id)
             #move_function("right", en.id)
             #move_function("left", en.id)
+
+    def do_enemy_type1_action_policy(self, enemy: PrefabData):
+        # TODO: aplicar politica de accion
+        pass
+
+    def do_enemy_type2_action_policy(self, enemy: PrefabData):
+        # TODO: aplicar politica de accion
+        pass
+
+    def do_enemy_type3_action_policy(self, enemy: PrefabData):
+        # TODO: aplicar politica de accion
+        pass
+
+    def do_final_enemy_action_policy(self, enemy: PrefabData):
+        # TODO: aplicar politica de accion
+        pass
 
     def evaluate_attacks(self, chest_generation_function: Callable[[str], None], 
                          delete_enemy_function: Callable[[int], None], 
@@ -90,7 +110,8 @@ class GameModel:
             else:
                 return False
         if is_hit:
-            to.life -= (shoot.damage - interval - self.__get_montecarlo_damage())
+            value = to.life - (shoot.damage - interval - self.__get_montecarlo_damage())
+            to.life = value if value >= 0 else 0
             return True
         return False
 

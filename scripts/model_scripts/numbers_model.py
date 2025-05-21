@@ -13,6 +13,8 @@ class NumbersModel:
         self.using_backup = False
 
     def init_numbers(self):
+        if len(self.numbers) > 0 or len(self.numbers_2) > 0:
+            return
         self.__generate_numbers()
         self.__generate_numbers(is_backup=True)
     

@@ -33,7 +33,7 @@ class Character(Prefab):
 
     def reset_character(self):
         self.weapon_index = 0
-        self.weapons = [Submachine(self.prefab_data.x, self.prefab_data.y - 35), 
+        self.weapons : list[Weapon] = [Submachine(self.prefab_data.x, self.prefab_data.y - 35), 
             Rifle(self.prefab_data.x, self.prefab_data.y - 35), 
             Shotgun(self.prefab_data.x, self.prefab_data.y - 35), 
             Raygun(self.prefab_data.x, self.prefab_data.y - 35)]
@@ -52,20 +52,27 @@ class Character(Prefab):
         Raises:
             ValueError: Si ya hay 4 armas en el inventario.
         """
-        if len(self.weapons) < 4:
+        if weapon in self.weapons:
+            return True
+        elif len(self.weapons) < 4:
+            weapon.direction = self.prefab_data.direction
             self.weapons.append(weapon.set_position(self.prefab_data.x, self.prefab_data.y - 35))
-        else:
-            print("Cannot add more weapons. Maximum of 4 reached.")
-            #Debe remplazarse a un mensaje en pantalla que indique que no se pueden agregar más armas.
+            return True
+        return False
 
-    def leave_weapon(self, weapon: Weapon):
+    def leave_weapon(self):
         """
         Elimina un arma del inventario de Chester.
 
         Args:
             weapon (Weapon): El arma a eliminar.
         """
-        self.weapons.remove(weapon)
+        if len(self.weapons) == 1:
+            return None
+        wp = self.weapons.pop(self.weapon_index)
+        if self.weapon_index >= len(self.weapons):
+            self.weapon_index = len(self.weapons) - 1
+        return wp
 
     def do_action(self, keys):
         """
@@ -112,7 +119,6 @@ class Character(Prefab):
             return data
         super().update_animation()
         self.weapons[self.weapon_index].update_animation(bullet_data_creation)
-        wp = self.weapons[self.weapon_index]
         
     def draw_weapons_bullets(self, surface):
         """

@@ -12,9 +12,9 @@ class Submachine(Weapon):
         remaining_munition (int): Munición restante del subfusil.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, direction="down"):
         bullet_folder_url = os.path.join(WEAPONS_FOLDER, "weapon_1-submachine")
-        super().__init__(x, y, self.get_directions(), bullet_folder_url, 5)
+        super().__init__(x, y, self.get_directions(), bullet_folder_url, 5, direction=direction)
         self.shooting = False
         self.max_munition = 150
         self.remaining_munition = self.max_munition
@@ -43,9 +43,9 @@ class Rifle(Weapon):
         remaining_munition (int): Munición restante del rifle.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, direction="down"):
         bullet_folder_url = os.path.join(WEAPON_RIFLE_FOLDER)
-        super().__init__(x, y, self.get_directions(), bullet_folder_url, 10)
+        super().__init__(x, y, self.get_directions(), bullet_folder_url, 10, direction=direction)
         self.shooting = False
         self.max_munition = 100
         self.remaining_munition = self.max_munition
@@ -74,9 +74,9 @@ class Shotgun(Weapon):
         remaining_munition (int): Munición restante de la escopeta.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, direction="down"):
         bullet_folder_url = os.path.join(WEAPON_SHOTGUN_FOLDER)
-        super().__init__(x, y, self.get_directions(), bullet_folder_url, 60)
+        super().__init__(x, y, self.get_directions(), bullet_folder_url, 60, direction=direction)
         self.shooting = False
         self.max_munition = 70
         self.remaining_munition = self.max_munition
@@ -105,9 +105,9 @@ class Raygun(Weapon):
         remaining_munition (int): Munición restante de la pistola de rayos.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, direction="down"):
         bullet_folder_url = os.path.join(WEAPON_RAYGUN_FOLDER)
-        super().__init__(x, y, self.get_directions(), bullet_folder_url, 50)
+        super().__init__(x, y, self.get_directions(), bullet_folder_url, 50, direction=direction)
         self.shooting = False
         self.max_munition = 100
         self.remaining_munition = self.max_munition

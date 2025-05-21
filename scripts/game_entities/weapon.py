@@ -17,10 +17,10 @@ class Weapon(ABC):
         bullet_image (pygame.Surface): Imagen de la bala disparada por el arma.
     """
 
-    def __init__(self, x, y, directions, bullet_folder_url, frame_update=None):
+    def __init__(self, x, y, directions, bullet_folder_url, frame_update=None, direction="down"):
         self.x = x
         self.y = y
-        self.direction = "down"
+        self.direction = direction
         self.moving = False
         self.speed = 5
         self.cycle_count = 0
@@ -57,19 +57,19 @@ class Weapon(ABC):
         """
         self.shooting = False
         self.moving = False
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.direction = "up"
             self.y -= self.speed
             self.moving = True
-        elif keys[pygame.K_DOWN]:
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.direction = "down"
             self.y += self.speed
             self.moving = True
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.direction = "left"
             self.x -= self.speed
             self.moving = True
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.direction = "right"
             self.x += self.speed
             self.moving = True
