@@ -44,7 +44,7 @@ class IView(ABC):
         pass
 
     @abstractmethod
-    def do_enemy_attack(self, with_move: bool, enemy_id: int):
+    def do_enemy_attack(self, with_move: bool, enemy_id: int, attack_type: str | None):
         pass
 
     @abstractmethod
@@ -89,7 +89,7 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def do_enemy_attack(self, with_move: bool, enemy_id: int):
+    def do_enemy_attack(self, with_move: bool, enemy_id: int, attack_type: str | None):
         pass
 
     @abstractmethod

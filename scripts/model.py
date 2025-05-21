@@ -28,7 +28,7 @@ class Model(IModel):
             lambda: self.presenter.character_death()
         )
         self.game_model.evaluate_character_position_action(
-            lambda x, y: self.presenter.do_enemy_attack(x, y),
+            lambda x, y, z: self.presenter.do_enemy_attack(x, y, z),
             lambda x, y: self.presenter.do_enemy_move(x, y)
         )
 

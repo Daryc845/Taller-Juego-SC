@@ -65,11 +65,14 @@ class GameScene(IView, BaseScene):
         self.leaved_weapons.clear()
         self.leaved_weapons.append(Shotgun(300, 300, direction="left"))
 
-    def do_enemy_attack(self, with_move, enemy_id):
+    def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
         if len(res) > 0:
             res = res[0]
-            res.attack()
+            if attack_type:
+                res.attack(attack_type)
+            else:
+                res.attack()
             if with_move:
                 res.move(res.last_direction)
     
@@ -80,6 +83,7 @@ class GameScene(IView, BaseScene):
             res.move(direction)
 
     def show_chest(self, weapon_type: str):
+        # TODO: mostrar el cofre
         pass
 
     def delete_enemy(self, enemy_id: int):

@@ -68,7 +68,7 @@ class FinalEnemy(ShooterEnemy):#, MeleeEnemy):
             "right": os.path.join(ENEMY_3_FOLDER, "shadow_wizard-animation-right_attacking")#TODO
         }
     
-    def attack(self, type):
+    def attack(self, type: str):
         super().attack()
         self.current_attack_type = type
     

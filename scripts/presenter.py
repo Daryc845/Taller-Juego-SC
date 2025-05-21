@@ -20,8 +20,8 @@ class Presenter(IPresenter):
     def show_enemy(self, prefab_enemy: PrefabData, type: str):
         self.view.show_enemy(prefab_enemy, type)
 
-    def do_enemy_attack(self, with_move, enemy_id):
-        self.view.do_enemy_attack(with_move, enemy_id)
+    def do_enemy_attack(self, with_move, enemy_id, attack_type):
+        self.view.do_enemy_attack(with_move, enemy_id, attack_type)
 
     def do_enemy_move(self, direction, enemy_id):
         self.view.do_enemy_move(direction, enemy_id)

@@ -7,8 +7,8 @@ class GameModel:
     def __init__(self):
         self.numbers_model = NumbersModel()
         self.environment = EnvironmentData(WIDTH, HEIGHT)
-        self.in_pause = False # TODO: implementar en pausa para generar enemigos
-        self.terminate = False # TODO: terminar ejecucion hilo de generacion de enemigos
+        self.in_pause = False # TODO: pausa para generar enemigos
+        self.terminate = False # TODO: para terminar ejecucion hilo de generacion de enemigos
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
@@ -56,35 +56,41 @@ class GameModel:
         pass
 
     def generate_final_enemy(self):
+        # TODO: generar enemigo final
         pass
 
-    def evaluate_character_position_action(self, attack_function: Callable[[bool, int], None], 
+    def evaluate_character_position_action(self, attack_function: Callable[[bool, int, str | None], None], 
                                            move_function: Callable[[str, int], None]):
         # TODO: calcular movimientos, y ataques al jugador, segun el tipo de enemigo; con agentes
         # cada tipo de enemigo es un agente distinto
         #print(self.environment.get_observation_space())
         for en in self.environment.enemies:
-            #attack_function(True, en.id) # solo para enemigo final
-            attack_function(False, en.id) # para otros tipos de enemigos
+            #attack_function(True, en.id, "melee") # solo para enemigo final (tipo ataque: "melee", "shoot")
+            attack_function(False, en.id, None) # para otros tipos de enemigos
             #move_function("up", en.id)
             #move_function("down", en.id)
             #move_function("right", en.id)
             #move_function("left", en.id)
 
     def do_enemy_type1_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion
+        # TODO: aplicar politica de accion: dirigirse al jugador o cuando este cerca atacar
+        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
         pass
 
     def do_enemy_type2_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion
+        # TODO: aplicar politica de accion: caminar aleatoriamente o dirigirse al jugador, o atacar cuando este cerca
+        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
         pass
 
     def do_enemy_type3_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion
+        # TODO: aplicar politica de accion: dirigirse al jugador o atacar (como dispara no es necesario que este cerca)
+        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
         pass
 
     def do_final_enemy_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion
+        # TODO: aplicar politica de accion: caminar aleatoriamente o dirigirse al jugador, 
+        # o atacar cuando este cerca o disparar desde lejos (ya que puede hacer ataque melee o disparar)
+        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse, o el tipo de ataque (melee o disparo)
         pass
 
     def evaluate_attacks(self, chest_generation_function: Callable[[str], None], 
