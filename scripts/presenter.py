@@ -34,3 +34,18 @@ class Presenter(IPresenter):
 
     def character_death(self):
         self.view.character_death()
+
+    def to_second_phase(self):
+        self.view.to_second_phase()
+
+    def change_in_pause(self):
+        self.model.change_in_pause()
+
+    def quit_game(self):
+        self.model.quit_game()
+
+    def start_second_phase(self):
+        self.model.start_second_phase()
+
+    def game_won(self, obtain_points: int):
+        self.view.game_won(obtain_points)

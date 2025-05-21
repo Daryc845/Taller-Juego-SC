@@ -39,7 +39,6 @@ class Character(Prefab):
             Raygun(self.prefab_data.x, self.prefab_data.y - 35)]
         self.weapons[self.weapon_index].x = self.prefab_data.x
         self.weapons[self.weapon_index].y = self.prefab_data.y - 35
-        self.change_weapon_delay_counter = 50
         self.bullets_count_id = 0
 
     def add_weapon(self, weapon: Weapon):
@@ -83,16 +82,12 @@ class Character(Prefab):
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
         super().do_action(keys)
-        self.change_weapon_delay_counter -= 1
-        if keys[pygame.K_1] and self.change_weapon_delay_counter <= 0:
-            self.change_weapon()
         self.do_action_weapons(keys)
     
     def change_weapon(self):
         """
         Cambia el arma equipada de Chester.
         """
-        self.change_weapon_delay_counter = 50
         self.weapon_index += 1
         if self.weapon_index >= len(self.weapons):
             self.weapon_index = 0
@@ -120,7 +115,7 @@ class Character(Prefab):
         super().update_animation()
         self.weapons[self.weapon_index].update_animation(bullet_data_creation)
         
-    def draw_weapons_bullets(self, surface):
+    def draw_weapons_bullets(self, surface, in_pause=False):
         """
         Dibuja las balas disparadas por las armas de Chester(incluso si el arma de donde provino la bala no esta seleccionada).
 
@@ -128,9 +123,9 @@ class Character(Prefab):
             surface (pygame.Surface): Superficie donde se dibujarán las balas.
         """
         for weapon in self.weapons:
-            weapon.draw_bullets(surface)
+            weapon.draw_bullets(surface, in_pause=in_pause)
 
-    def draw(self, surface):
+    def draw(self, surface, in_pause=False):
         """
         Dibuja a Chester y su arma equipada en la superficie proporcionada.
 
@@ -138,7 +133,7 @@ class Character(Prefab):
             surface (pygame.Surface): Superficie donde se dibujará el prefab.
         """
         super().draw(surface)
-        self.draw_weapons_bullets(surface)
+        self.draw_weapons_bullets(surface, in_pause=in_pause)
         self.weapons[self.weapon_index].draw(surface)
         title_surface = self.font.render("ARMAS", True, (255, 255, 255))
         surface.blit(title_surface, (10, 40 - 25))

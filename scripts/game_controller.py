@@ -1,10 +1,10 @@
-from scripts.game_configs import FPS, screen, background_image, clock
+from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
 from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy, Weapon, Shotgun
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
-from scripts.game_scenes import StartScene
-import sys
+from scripts.game_scenes import StartScene, BaseScene, NextPhaseLoadingScene
 import pygame
+import time
 
 """
 Módulo principal del juego. Configura la pantalla, carga los recursos y maneja el bucle principal del juego.
@@ -12,7 +12,7 @@ En este módulo deben unirse todos los elementos del juego, como los personajes,
 y ESCENAS.
 """
 # --- Escena del juego ---
-class GameScene(IView):
+class GameScene(IView, BaseScene):
     """
     Clase que representa una escena del juego. Maneja la lógica de eventos, actualiza el estado del juego y dibuja en pantalla.
     DEBE EDITARSE PARA HACERLA MAS GENERALIZADA Y QUE PUEDA SER REUTILIZADA EN OTRAS ESCENAS.
@@ -21,20 +21,33 @@ class GameScene(IView):
     de distintos niveles, menús, etc.
     """
     def __init__(self):
+        super().__init__()
         self.presenter : IPresenter = None
         self.character: Character = None
         self.enemies : list[Enemy] = []
-        self.next_scene = None  # Para permitir cambios de escena en el futuro
         self.is_in_game = False
         self.is_in_pause = False
         self.start_scene = StartScene(load_function=lambda x: self.presenter.generate_game_configs(x))
         self.leaved_weapons: list[Weapon] = [Shotgun(300, 300, direction="left")]
-        self.key_pressed = { pygame.K_2: False, pygame.K_3: False }
-        self.key_processed = { pygame.K_2: False, pygame.K_3: False }
+        self.key_pressed = { pygame.K_1: False, pygame.K_2: False, pygame.K_3: False, pygame.K_p: False }
+        self.key_processed = { pygame.K_1: False, pygame.K_2: False, pygame.K_3: False, pygame.K_p: False }
         self.text_font = pygame.font.SysFont("Arial", 15)
+        self.pause_font = pygame.font.SysFont("Arial", 40, bold=True)
         self.cannot_add_weapon = False
         self.cannot_leave_weapon = False
         self.message_show_counter = 0
+        self.preparing_second_phase = False
+        self.couting_time = False
+        self.preparing_time = 0
+        self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
+                                                     (lambda: self.next_phase_load()))
+
+    def next_phase_load(self):
+        self.leaved_weapons.clear()
+        for wp in self.character.weapons:
+            wp.direction = self.character.prefab_data.direction
+            wp.set_position(self.character.prefab_data.x, self.character.prefab_data.y - 35)
+        self.preparing_second_phase = False
 
     def set_presenter(self, presenter: IPresenter):
         self.presenter = presenter
@@ -49,6 +62,8 @@ class GameScene(IView):
     def __reset_all(self):
         self.character.reset_character()
         self.enemies.clear()
+        self.leaved_weapons.clear()
+        self.leaved_weapons.append(Shotgun(300, 300, direction="left"))
 
     def do_enemy_attack(self, with_move, enemy_id):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -78,16 +93,32 @@ class GameScene(IView):
         self.start_scene.draw()
         self.is_in_game = False
 
+    def to_second_phase(self):
+        self.preparing_second_phase = True
+        self.couting_time = True
+        self.preparing_time = int(time.time())
+
     def run_game(self):
         while True:
-            if self.is_in_game and not self.is_in_pause:
-                self.play()
+            if not self.couting_time and self.preparing_second_phase:
+                self.preparing_scene.play(other_actions=lambda: self.presenter.quit_game())
+            elif self.is_in_game:
+                self.play(other_actions=lambda: self.presenter.quit_game())
                 clock.tick(FPS)
             elif not self.is_in_game:
                 if self.start_scene.next_scene is not None:
-                    self.start_scene.next_scene.play()
+                    self.start_scene.next_scene.play(other_actions=lambda: self.presenter.quit_game())
                 else:
-                    self.start_scene.play()
+                    self.start_scene.play(other_actions=lambda: self.presenter.quit_game())
+
+    def in_pause_handle(self):
+        p_pressed = False
+        if self.key_pressed[pygame.K_p] and not self.key_processed[pygame.K_p]:
+            p_pressed = True
+            self.key_processed[pygame.K_p] = True
+        if p_pressed:
+            self.presenter.change_in_pause()
+            self.is_in_pause = not self.is_in_pause
 
     def show_enemy(self, prefab_enemy: PrefabData, type: str):
         if type == "type1":
@@ -96,8 +127,19 @@ class GameScene(IView):
             self.enemies.append(EnemyType2(prefab_enemy))
         elif type == "type3":
             self.enemies.append(EnemyType3(prefab_enemy))
+        elif type == "final":
+            # TODO: generar enemigo final
+            pass
 
-    def handle_events(self):
+    def game_won(self, obtain_points):
+        self.is_in_game = False
+        self.start_scene.next_scene = None
+        self.start_scene.game_over = False
+        self.start_scene.game_won = True
+        self.start_scene.final_points = obtain_points
+
+    def handle_events(self, other_actions=None):
+        super().handle_events(other_actions=other_actions)
         keys_state = pygame.key.get_pressed()
         for key in self.key_pressed:
             if keys_state[key] and not self.key_pressed[key]:
@@ -106,15 +148,16 @@ class GameScene(IView):
             elif not keys_state[key]:
                 self.key_pressed[key] = False
                 self.key_processed[key] = False
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
 
-    def update(self):
-        keys = pygame.key.get_pressed()
+    def in_weapons_add_remove_handle(self):
+        k1_pressed = False
         k2_pressed = False
         k3_pressed = False
+        if self.key_pressed[pygame.K_1] and not self.key_processed[pygame.K_1]:
+            k1_pressed = True
+            self.key_processed[pygame.K_1] = True
+        if k1_pressed:
+            self.character.change_weapon()
         if self.key_pressed[pygame.K_2] and not self.key_processed[pygame.K_2]:
             k2_pressed = True
             self.key_processed[pygame.K_2] = True
@@ -136,15 +179,22 @@ class GameScene(IView):
                     self.cannot_add_weapon = True
                 else:
                     self.leaved_weapons.pop(weapon_index)
-        self.character.do_action(keys)
-        self.character.update_animation()
-        self.presenter.calculate_actions()
-        for enemy in self.enemies:
-            enemy.update_animation()
+
+    def update(self):
+        if not self.preparing_second_phase:
+            self.in_pause_handle()
+        if not self.is_in_pause:
+            self.in_weapons_add_remove_handle()
+            keys = pygame.key.get_pressed()
+            self.character.do_action(keys)
+            self.character.update_animation()
+            self.presenter.calculate_actions()
+            for enemy in self.enemies:
+                enemy.update_animation()
 
     def draw_cannot_leave_weapon(self):
         x, y = self.character.prefab_data.x, self.character.prefab_data.y
-        text = self.text_font.render("No puedes dejar armas, debes tener al menos una", True, (0, 0, 0))
+        text = self.text_font.render("No puedes soltar mas armas, debes tener al menos una", True, (0, 0, 0))
         pygame.draw.rect(screen, (255, 255, 255), (x, y, text.get_width() + 10, text.get_height()))
         screen.blit(text, (x + 5, y))
         self.message_show_counter += 1
@@ -176,18 +226,21 @@ class GameScene(IView):
         for wp in self.leaved_weapons:
             wp.draw(screen)
         for enemy in self.enemies:
-            enemy.draw(screen)
-        self.character.draw(screen)
+            enemy.draw(screen, in_pause=self.is_in_pause)
+        self.character.draw(screen, in_pause=self.is_in_pause)
         if self.cannot_leave_weapon:
             self.draw_cannot_leave_weapon()
         if self.cannot_add_weapon:
             self.draw_cannot_add_weapon()
+        if self.is_in_pause:
+            pause_text = self.pause_font.render("Juego en pausa", True, (255, 0, 0))
+            screen.blit(pause_text, (WIDTH//2 - pause_text.get_width()//2, HEIGHT//2 - pause_text.get_height()//2))
+        if self.preparing_second_phase:
+            now = int(time.time())
+            rest = 60 + self.preparing_time - now
+            if rest <= 0:
+                self.couting_time = False
+                self.preparing_scene.start_thread()
+            preparing_text = self.text_font.render(f"Tiempo de abastecimiento restante: {rest} segundos", True, (255, 0, 0))
+            screen.blit(preparing_text, (WIDTH - preparing_text.get_width() - 20, 20))
         pygame.display.flip()
-    
-    def play(self):
-        self.handle_events()
-        self.update()
-        self.draw()
-
-    def init_game(self):
-        self.run_game()

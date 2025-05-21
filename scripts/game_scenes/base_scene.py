@@ -25,7 +25,7 @@ class BaseScene(ABC):
     def draw(self):
         pass
     
-    def play(self):
-        self.handle_events()
+    def play(self, other_actions=None):
+        self.handle_events(other_actions=other_actions)
         self.update()
         self.draw()

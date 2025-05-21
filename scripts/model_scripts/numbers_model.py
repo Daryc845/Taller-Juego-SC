@@ -11,6 +11,7 @@ class NumbersModel:
         self.numbers_2 = []
         self.current_number = 0
         self.using_backup = False
+        self.terminate = False
 
     def init_numbers(self):
         if len(self.numbers) > 0 or len(self.numbers_2) > 0:
@@ -40,12 +41,16 @@ class NumbersModel:
 
     def __generate_numbers(self, is_backup = False):
         conf = self.__generate_conf()
+        if self.terminate:
+            return
         numbers = generate_numbers(conf)
         if is_backup:
             self.numbers_2 = numbers
         else:
             self.numbers = numbers
-        while not test_numbers(self.numbers):
+        while not test_numbers(self.numbers) and not self.terminate:
+            if self.terminate:
+                return
             conf = self.__generate_conf(first=False)
             numbers = generate_numbers(conf)
             if is_backup:

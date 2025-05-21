@@ -7,11 +7,32 @@ class GameModel:
     def __init__(self):
         self.numbers_model = NumbersModel()
         self.environment = EnvironmentData(WIDTH, HEIGHT)
+        self.in_pause = False # TODO: implementar en pausa para generar enemigos
+        self.terminate = False # TODO: terminar ejecucion hilo de generacion de enemigos
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
+
+    def reset_to_second_phase(self):
+        width, height = self.environment.width, self.environment.height
+        self.environment.character.attacks.clear()
+        self.environment.character.x = width // 2
+        self.environment.character.y = height // 2
+
+    def verify_first_phase(self, next_phase_function: Callable[[], None]):
+        while not self.terminate:
+            if len(self.environment.enemies) == 0:
+                next_phase_function()
+                break
+
+    def verify_second_phase(self, game_won_function: Callable[[int], None]):
+        #TODO: verificar que se venza el enemigo final, llamar a la funcion si se vence
+        import time
+        time.sleep(7)
+        game_won_function(self.environment.character_points)
+        pass
 
     def __generate_chest(self, chest_generation_function: Callable[[str], None]):
         # TODO: generar cofre, puede ser con montecarlo o markov
@@ -34,14 +55,17 @@ class GameModel:
         # TODO: generar enemigo, escoger el tipo de enemigo puede ser con markov o montecarlo
         pass
 
+    def generate_final_enemy(self):
+        pass
+
     def evaluate_character_position_action(self, attack_function: Callable[[bool, int], None], 
                                            move_function: Callable[[str, int], None]):
         # TODO: calcular movimientos, y ataques al jugador, segun el tipo de enemigo; con agentes
         # cada tipo de enemigo es un agente distinto
         #print(self.environment.get_observation_space())
         for en in self.environment.enemies:
-            attack_function(True, en.id)
-            #attack_function(False, en.id)
+            #attack_function(True, en.id) # solo para enemigo final
+            attack_function(False, en.id) # para otros tipos de enemigos
             #move_function("up", en.id)
             #move_function("down", en.id)
             #move_function("right", en.id)

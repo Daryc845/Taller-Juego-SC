@@ -110,13 +110,14 @@ class Weapon(ABC):
         if self.current_frame == 1:
             self.shoot(bullet_data_creation)
     
-    def draw_bullets(self, surface: pygame.Surface):
+    def draw_bullets(self, surface: pygame.Surface, in_pause=False):
         """
         Dibuja las balas disparadas por el arma en la superficie proporcionada.
         """
         for bullet in self.bullets_fired:
             if bullet.data.alive:
-                bullet.move()
+                if not in_pause:
+                    bullet.move()
                 bullet.draw(surface)
             else:
                 self.bullets_fired.remove(bullet)

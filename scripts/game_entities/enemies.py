@@ -30,12 +30,11 @@ class Enemy(Prefab, ABC):
         pass
 
     def move(self, direction: str):
-        if self.current_frame == 1:
-            super().move(direction)
-            self.frame_direction = direction
-            if self.frame_direction != 'right' and self.frame_direction != 'left':
-                self.frame_direction = "right" if "right" in self.last_direction else "left"
-            self.last_direction = self.frame_direction
+        super().move(direction)
+        self.frame_direction = direction
+        if self.frame_direction != 'right' and self.frame_direction != 'left':
+            self.frame_direction = "right" if "right" in self.last_direction else "left"
+        self.last_direction = self.frame_direction
 
     def attack(self):
         """
@@ -44,7 +43,6 @@ class Enemy(Prefab, ABC):
         self.attacking = True
         if not self.attacking:
             self.current_frame = 0
-        self.moving = False
     
     def update_animation(self):
         """
@@ -65,7 +63,7 @@ class Enemy(Prefab, ABC):
         else:
             self.current_frame = 0
     
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface, in_pause=False):
         """
         Dibuja el enemigo en la superficie proporcionada.
         
@@ -123,11 +121,12 @@ class ShooterEnemy(Enemy, ABC):
             bullet = Bullet(data, self.bullet_image)
             self.bullets_fired.append(bullet)
 
-    def draw(self, surface):
+    def draw(self, surface, in_pause=False):
         super().draw(surface)
         for bullet in self.bullets_fired:
             if bullet.data.alive:
-                bullet.move()
+                if not in_pause:
+                    bullet.move()
                 bullet.draw(surface)
             else:
                 self.bullets_fired.remove(bullet)

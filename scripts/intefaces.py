@@ -14,6 +14,18 @@ class IModel(ABC):
     def calculate_actions(self):
         pass
 
+    @abstractmethod
+    def change_in_pause(self):
+        pass
+
+    @abstractmethod
+    def quit_game(self):
+        pass
+
+    @abstractmethod
+    def start_second_phase(self):
+        pass
+
 class IView(ABC):
     @abstractmethod
     def set_presenter(self, presenter):
@@ -45,6 +57,14 @@ class IView(ABC):
 
     @abstractmethod
     def character_death(self):
+        pass
+
+    @abstractmethod
+    def to_second_phase(self):
+        pass
+
+    @abstractmethod
+    def game_won(self, obtain_points: int):
         pass
 
 class IPresenter(ABC):
@@ -82,4 +102,24 @@ class IPresenter(ABC):
 
     @abstractmethod
     def character_death(self):
+        pass
+
+    @abstractmethod
+    def to_second_phase(self):
+        pass
+
+    @abstractmethod
+    def change_in_pause(self):
+        pass
+
+    @abstractmethod
+    def quit_game(self):
+        pass
+
+    @abstractmethod
+    def start_second_phase(self):
+        pass
+
+    @abstractmethod
+    def game_won(self, obtain_points: int):
         pass

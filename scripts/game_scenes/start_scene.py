@@ -14,6 +14,8 @@ class StartScene(BaseScene):
         self.next_scene = None
         self.difficulty = "normal"
         self.game_over = False
+        self.game_won = False
+        self.final_points = 0
         pygame.font.init()
         self.title_font = pygame.font.SysFont("Arial", 48, bold=True)
         self.button_font = pygame.font.SysFont("Arial", 36)
@@ -63,6 +65,11 @@ class StartScene(BaseScene):
         if self.game_over:
             game_over_text = self.text_font.render("Has perdido", True, (255, 0, 0))
             screen.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//2 - 100))
+        elif self.game_won:
+            game_won_text = self.text_font.render("Has ganado", True, (0, 255, 0))
+            screen.blit(game_won_text, (WIDTH//2 - game_won_text.get_width()//2, HEIGHT//2 - 150))
+            final_points_text = self.text_font.render(f"Puntos obtenidos: {self.final_points}", True, (0, 255, 0))
+            screen.blit(final_points_text, (WIDTH//2 - final_points_text.get_width()//2, HEIGHT//2 - 100))
         diff_text = self.text_font.render("Selecciona la dificultad:", True, self.WHITE)
         screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, HEIGHT//2 - 50))
         pygame.draw.rect(screen, self.GREEN if self.difficulty == "fácil" else self.GRAY, self.easy_button)

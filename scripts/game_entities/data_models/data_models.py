@@ -43,6 +43,7 @@ class EnvironmentData:
     def reset_environment(self):
         self.character.x = self.width // 2
         self.character.y = self.height // 2
+        self.character_points = 0
         self.character.direction = "down"
         self.character.life = 500
         self.character.attacks.clear()
