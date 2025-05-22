@@ -36,7 +36,8 @@ class Prefab(ABC):
         self.font = pygame.font.SysFont('Arial', 18, bold=True)
         self.small_font = pygame.font.SysFont('Arial', 14)
 
-    def do_action(self, keys: pygame.key.ScancodeWrapper):
+    def do_action(self, keys: pygame.key.ScancodeWrapper, restricted_directions=[False, False, False, False]):
+        
         """
         Detecta las acciones del prefab según las teclas presionadas, como moverse.
 
@@ -44,13 +45,17 @@ class Prefab(ABC):
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
         self.moving = False
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and (not restricted_directions[2]):
+            print("up", restricted_directions) 
             self.move("up")
-        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (not restricted_directions[3]):
+            print("down", restricted_directions) 
             self.move("down")
-        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        elif (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (not restricted_directions[0]):
+            print("left", restricted_directions) 
             self.move("left")
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (not restricted_directions[1]):
+            print("right", restricted_directions) 
             self.move("right")
 
     def move(self, direction: str):
