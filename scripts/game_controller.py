@@ -190,8 +190,8 @@ class GameScene(IView, BaseScene):
         if not self.is_in_pause:
             self.in_weapons_add_remove_handle()
             keys = pygame.key.get_pressed()
-            if(self.restrict_movement_character()):
-                self.character.do_action(keys)
+            restricetd_directions = self.restrict_movement_character()
+            self.character.do_action(keys,restricted_directions=restricetd_directions)
             self.character.update_animation()
             self.presenter.calculate_actions()
             for enemy in self.enemies:
@@ -228,12 +228,16 @@ class GameScene(IView, BaseScene):
     
     def restrict_movement_character(self):
         ch_x, ch_y = self.character.prefab_data.x, self.character.prefab_data.y
-        direction = self.character.prefab_data.direction
-        if((ch_x >= WIDTH* 0.2 and ch_x <= WIDTH*0.9) and (direction == "right" or direction == "left")):
-            return True
-        if((ch_y >= HEIGHT*0.2 and ch_y <= HEIGHT*0.9) and (direction == "up" or direction == "down")):
-            return True
-        return False
+        directions_restricted = [False, False, False, False]
+        if(ch_x < int(WIDTH*0.2)):
+            directions_restricted[0] = True
+        if(ch_x > int(WIDTH*0.8)):
+            directions_restricted[1] = True
+        if(ch_y < int(HEIGHT*0.2)):
+            directions_restricted[2] = True
+        if(ch_y > int(HEIGHT*0.8)):
+            directions_restricted[3] = True  
+        return directions_restricted
 
     def draw(self):
         screen.blit(background_image, (0, 0))

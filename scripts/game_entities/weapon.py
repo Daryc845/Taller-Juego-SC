@@ -48,7 +48,7 @@ class Weapon(ABC):
         self.y = y
         return self
 
-    def do_action(self, keys):
+    def do_action(self, keys, restricted_directions=[False, False, False, False]):
         """
         Realiza acciones del arma según las teclas presionadas, como disparar.
 
@@ -57,19 +57,19 @@ class Weapon(ABC):
         """
         self.shooting = False
         self.moving = False
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and (not restricted_directions[2]):
             self.direction = "up"
             self.y -= self.speed
             self.moving = True
-        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (not restricted_directions[3]):
             self.direction = "down"
             self.y += self.speed
             self.moving = True
-        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        elif (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (not restricted_directions[0]):
             self.direction = "left"
             self.x -= self.speed
             self.moving = True
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+        elif(keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (not restricted_directions[1]):
             self.direction = "right"
             self.x += self.speed
             self.moving = True

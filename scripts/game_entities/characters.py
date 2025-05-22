@@ -73,16 +73,16 @@ class Character(Prefab):
             self.weapon_index = len(self.weapons) - 1
         return wp
 
-    def do_action(self, keys):
+    def do_action(self, keys, restricted_directions=[False, False, False, False]):
         """
-        Realiza acciones de Chester según las teclas presionadas, como moverse
+        Realiza acciones de Chester según las teclas presionadas, cosmo moverse
         o cambiar de arma.
 
         Args:
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
-        super().do_action(keys)
-        self.do_action_weapons(keys)
+        super().do_action(keys, restricted_directions=restricted_directions)
+        self.do_action_weapons(keys, restricted_directions=restricted_directions)
     
     def change_weapon(self):
         """
@@ -92,7 +92,7 @@ class Character(Prefab):
         if self.weapon_index >= len(self.weapons):
             self.weapon_index = 0
 
-    def do_action_weapons(self, keys):
+    def do_action_weapons(self, keys, restricted_directions=[False, False, False, False]):
         """
         Realiza acciones específicas de las armas de Chester, en este caso indica que 
         el inventario de armas se mueve junto con Chester.
@@ -101,7 +101,7 @@ class Character(Prefab):
             keys (pygame.key.ScancodeWrapper): Estado de las teclas presionadas.
         """
         for weapon in self.weapons:
-            weapon.do_action(keys)
+            weapon.do_action(keys, restricted_directions=restricted_directions)
 
     def update_animation(self):
         """
