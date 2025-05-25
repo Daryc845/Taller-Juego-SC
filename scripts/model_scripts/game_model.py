@@ -161,12 +161,13 @@ class GameModel:
         x_width, _ = enemy.max_dimensions[enemy.frame_direction] if enemy.max_dimensions else (0, 0)
         x, y = enemy.x + 40 if enemy.frame_direction == "right" else enemy.x - 40, enemy.y - 40
         direction = enemy.direction
-        on_x = x > ob_min_x and x < ob_max_x
-        on_y = y > ob_min_y and y < ob_max_y
-        if (direction == "right" and x < ob_min_x and on_y) or \
-            (direction == "left" and x > ob_max_x and on_y) or \
-            (direction == "up" and y > ob_max_y and on_x) or \
-            (direction == "down" and y < ob_min_y and on_x):
+        lim = enemy.speed * 2
+        on_x = x >= ob_min_x + lim and x <= ob_max_x - lim
+        on_y = y >= ob_min_y + lim and y <= ob_max_y - lim
+        if (direction == "right" and x <= ob_min_x + lim and on_y) or \
+            (direction == "left" and x >= ob_max_x - lim and on_y) or \
+            (direction == "up" and y >= ob_max_y - lim and on_x) or \
+            (direction == "down" and y <= ob_min_y + lim and on_x):
             return "attack", ob_x, ob_y, x, x_width
         return "move", ob_x, ob_y, x, x_width
 
