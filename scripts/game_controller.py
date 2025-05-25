@@ -36,6 +36,7 @@ class GameScene(IView, BaseScene):
         self.cannot_add_weapon = False
         self.cannot_leave_weapon = False
         self.message_show_counter = 0
+        self.enemies_counter = 0
         self.preparing_second_phase = False
         self.couting_time = False
         self.preparing_time = 0
@@ -193,7 +194,10 @@ class GameScene(IView, BaseScene):
             restricetd_directions = self.restrict_movement_character()
             self.character.do_action(keys,restricted_directions=restricetd_directions)
             self.character.update_animation()
-            self.presenter.calculate_actions()
+            if self.enemies_counter == 3:
+                self.presenter.calculate_actions()
+                self.enemies_counter = 0
+            self.enemies_counter += 1
             for enemy in self.enemies:
                 enemy.update_animation()
 
