@@ -42,7 +42,21 @@ class GameScene(IView, BaseScene):
         self.enemies_counter = 0
         self.preparing_second_phase = False
         self.couting_time = False
+        self.help_controls_counter = 200
         self.preparing_time = 0
+        
+        self.add_chest_generation_points()
+        self.generate_chest()
+        
+        self.torches = []
+        self.add_torch_generation_points()
+        self.add_random_torches(5)
+        
+        self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
+                                                     (lambda: self.next_phase_load()))
+
+    def add_chest_generation_points(self):
+        """Añade puntos de generación del cofre en posiciones predefinidas."""
         self.chest_generation_points = [
             (WIDTH*0.11, HEIGHT*0.22),
             (WIDTH*0.5, HEIGHT*0.22),
@@ -55,8 +69,9 @@ class GameScene(IView, BaseScene):
             (WIDTH*0.5, HEIGHT*0.83),
             (WIDTH*0.89, HEIGHT*0.83)
         ]
-        self.generate_chest()
-        self.torches = []
+
+    def add_torch_generation_points(self):
+        """Añade puntos de generación de antorchas en posiciones predefinidas."""
         self.torch_generation_points = [
             (WIDTH*0.2, HEIGHT*0.07),
             (WIDTH*0.4, HEIGHT*0.07), 
@@ -69,10 +84,6 @@ class GameScene(IView, BaseScene):
             (WIDTH*0.96, HEIGHT*0.5),
             (WIDTH*0.96, HEIGHT*0.75)
         ]
-        self.add_random_torches(5)
-        self.help_controls_counter = 200
-        self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
-                                                     (lambda: self.next_phase_load()))
 
     def add_random_torches(self, num_torches):
         """
@@ -160,13 +171,15 @@ class GameScene(IView, BaseScene):
             res.move(direction)
 
     def show_chest(self, weapon_type: str = None):
+        """Muestra el cofre en una posición aleatoria de los puntos de generación predefinidos."""
         """generation_point_index = self.generate_chest_generation_point()
         selected_point = self.chest_generation_points[generation_point_index]
         self.chest.show_chest(*selected_point)"""
         pass
         
         
-    def generate_chest(self, weapon_type: str = None):
+    def generate_chest(self):
+        """Genera un cofre en una posición aleatoria de los puntos de generación predefinidos"""
         generation_point_index = self.generate_chest_generation_point()
         selected_point = self.chest_generation_points[generation_point_index]
         chest_data = PrefabData(*selected_point, direction="down", life=1)
@@ -419,7 +432,7 @@ class GameScene(IView, BaseScene):
             screen.blit(pause_text, (WIDTH//2 - pause_text.get_width()//2, HEIGHT//2 - pause_text.get_height()//2))
         if self.preparing_second_phase:
             now = int(time.time())
-            rest = 60 + self.preparing_time - now
+            rest = 30 + self.preparing_time - now
             if rest <= 0:
                 self.couting_time = False
                 self.preparing_scene.start_thread()
