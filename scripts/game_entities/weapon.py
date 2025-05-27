@@ -32,6 +32,17 @@ class Weapon(ABC):
         self.max_munition = 100
         self.remaining_munition = self.max_munition
         self.bullets_fired: list[Bullet] = []
+        
+    def add_munition(self, amount):
+        """
+        Agrega munición al arma.
+
+        Args:
+            amount (int): Cantidad de munición a agregar.
+        """
+        self.remaining_munition += amount
+        if self.remaining_munition > self.max_munition:
+            self.remaining_munition = self.max_munition
 
     def set_position(self, x, y):
         """
@@ -47,6 +58,19 @@ class Weapon(ABC):
         self.x = x
         self.y = y
         return self
+
+    def set_direction(self, direction):
+        """
+        Establece la dirección del arma.
+
+        Args:
+            direction (str): Nueva dirección del arma ('up', 'down', 'left', 'right').
+        """
+        if direction in self.animations:
+            self.direction = direction
+            return self
+        else:
+            raise ValueError(f"Invalid direction: {direction}. Valid directions are: {list(self.animations.keys())}")
 
     def do_action(self, keys, restricted_directions=[False, False, False, False]):
         """
@@ -179,3 +203,6 @@ class Weapon(ABC):
         Devuelve el daño de la bala que el arma dispara.
         """
         pass
+    
+    def get_icon(self):
+        return self.idles["right"].copy()
