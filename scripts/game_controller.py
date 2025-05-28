@@ -42,7 +42,7 @@ class GameScene(IView, BaseScene):
         self.enemies_counter = 0
         self.preparing_second_phase = False
         self.couting_time = False
-        self.help_controls_counter = 200
+        self.help_controls_counter = 500
         self.preparing_time = 0
         
         self.add_chest_generation_points()
@@ -303,7 +303,7 @@ class GameScene(IView, BaseScene):
             for torch in self.torches:
                 torch.update(self.character)
             restricetd_directions = self.restrict_movement_character()
-            self.character.do_action(keys,restricted_directions=restricetd_directions)
+            self.character.do_action(keys, restricted_directions=restricetd_directions)
             self.character.update_animation()
             if self.enemies_counter == 3:
                 self.presenter.calculate_actions()
@@ -407,22 +407,20 @@ class GameScene(IView, BaseScene):
         screen.blit(background_image, (0, 0))
         for wp in self.leaved_weapons:
             wp.draw(screen)
-        for enemy in self.enemies:
-            enemy.draw(screen, in_pause=self.is_in_pause)
+        
         
         
         for torch in self.torches:
             torch.draw(screen)
-        self.character.draw(screen, in_pause=self.is_in_pause)
+        self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
         
         if self.character.prefab_data.y > self.chest.prefab_data.y * 0.99:
             self.chest.draw(screen, self.character)
-            self.character.draw(screen, in_pause=self.is_in_pause)
+            self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
         else:
-            self.character.draw(screen, in_pause=self.is_in_pause)
+            self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
             self.chest.draw(screen, self.character)
             
-        
         if self.cannot_leave_weapon:
             self.draw_cannot_leave_weapon()
         if self.cannot_add_weapon:
@@ -438,6 +436,8 @@ class GameScene(IView, BaseScene):
                 self.preparing_scene.start_thread()
             preparing_text = self.text_font.render(f"Tiempo de abastecimiento restante: {rest} segundos", True, (255, 0, 0))
             screen.blit(preparing_text, (WIDTH - preparing_text.get_width() - 20, 20))
+        for enemy in self.enemies:
+            enemy.draw(screen, in_pause=self.is_in_pause)
         self.draw_timed_message()
         self.help_controls_counter -= 1
         if self.help_controls_counter > 0:

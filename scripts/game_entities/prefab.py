@@ -84,6 +84,8 @@ class Prefab(ABC):
                 self.current_frame = (self.current_frame + 1) % len(self.animations[self.prefab_data.direction])
         else:
             self.current_frame = 0
+            
+            
 
     def draw(self, surface: pygame.Surface):
         """

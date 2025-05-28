@@ -25,6 +25,9 @@ class Chest(StaticObject):
         self.reward = None
         self.show_timed_message = show_timed_message
         self.draw_character_message = draw_character_message
+        self.blink_counter = 0
+        self.blink_interval = 10
+        self.blink_visible = True
     
     def update(self, character):
         """
@@ -170,6 +173,18 @@ class Chest(StaticObject):
             frame = self.idle_image
         else:
             return
+        
+        self.blink_counter += 1
+        if self.blink_counter >= self.blink_interval:
+            self.blink_counter = 0
+            self.blink_visible = not self.blink_visible
+        
+        if self.check_character_nearby(character):
+            frame.set_alpha(255)
+        elif not self.blink_visible:
+            frame.set_alpha(110)
+        else:
+            frame.set_alpha(160)
             
         max_width, max_height = self.max_dimensions["default"]
         pos_x = self.prefab_data.x - max_width // 2

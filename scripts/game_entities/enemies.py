@@ -16,6 +16,9 @@ class Enemy(Prefab, ABC):
         self.attack_animations, self.attack_max_dimensions = load_animations(self.get_attack_directions())
         self.attack_count_id = 0
         self.width, self.height = self.max_dimensions[self.prefab_data.frame_direction]
+        self.blink_counter = 0
+        self.blink_interval = 10
+        self.blink_visible = True
     
     @abstractmethod
     def get_attack_directions(self):
@@ -69,12 +72,22 @@ class Enemy(Prefab, ABC):
         Args:
             surface (pygame.Surface): Superficie donde se dibujará el enemigo.
         """
+        
         if self.attacking:
             frame = self.attack_animations[self.prefab_data.frame_direction][self.current_frame]
             max_width, max_height = self.attack_max_dimensions[self.prefab_data.frame_direction]
         else:
+            self.blink_counter += 1
+            if self.blink_counter >= self.blink_interval:
+                self.blink_counter = 0
+                self.blink_visible = not self.blink_visible
             frame = self.animations[self.prefab_data.frame_direction][self.current_frame]
             max_width, max_height = self.max_dimensions[self.prefab_data.frame_direction]
+            if not self.blink_visible:
+                frame.set_alpha(130)
+            else:
+                frame.set_alpha(180)
+         
             
         pos_x = self.prefab_data.x - max_width // 2
         pos_y = self.prefab_data.y - max_height // 2

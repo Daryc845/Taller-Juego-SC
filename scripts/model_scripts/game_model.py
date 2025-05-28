@@ -1,4 +1,5 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
+from scripts.game_entities.prefab import Prefab
 from scripts.game_configs import WIDTH, HEIGHT
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
@@ -219,7 +220,7 @@ class GameModel:
     def __get_pseudo_random_number(self):
         return self.numbers_model.get_next_pseudo_random_number()
     
-    def __verify_shoot_damage(self, shoot: AttackData, to: PrefabData, is_enemy: bool)-> bool:
+    def __verify_shoot_damage(self, shoot: AttackData, to: Prefab, is_enemy: bool)-> bool:
         direction_to = to.direction
         if is_enemy:
             direction_to = "left"

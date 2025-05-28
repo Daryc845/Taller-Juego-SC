@@ -37,6 +37,7 @@ class Character(Prefab):
         self.beaten_frame = 0
         self.beaten_cycle_count = 0
         self.beaten_direction = None
+        self.actual_life = prefab_data.life
         self.reset_character()
 
     def reset_character(self):
@@ -149,6 +150,15 @@ class Character(Prefab):
         """
         Actualiza las animaciones del prefab y del arma equipada.
         """
+        if self.actual_life > self.prefab_data.life:
+            if self.is_beaten:
+                self.prefab_data.life = self.actual_life
+            else:
+                self.is_beaten = True
+                self.actual_life = self.prefab_data.life
+            self.beaten_direction = self.prefab_data.direction
+            self.beaten_frame = 0
+            self.beaten_cycle_count = 0
         def bullet_data_creation(x: int, y: int, direction: str, damage: int, type: str) -> AttackData:
             data = AttackData(self.bullets_count_id, x, y, damage, direction, type)
             self.prefab_data.attacks.append(data)
@@ -167,27 +177,51 @@ class Character(Prefab):
         for weapon in self.weapons:
             weapon.draw_bullets(surface, in_pause=in_pause)
 
-    def draw(self, surface, in_pause=False):
+    def draw(self, surface, draw_character_message, in_pause=False):
         """
         Dibuja a Chester y su arma equipada en la superficie proporcionada.
 
         Args:
             surface (pygame.Surface): Superficie donde se dibujará el prefab.
         """
+        
         self.draw_weapons_bullets(surface, in_pause=in_pause)
-        self.evaluate_position_and_draw(surface)
+        self.evaluate_position_and_draw(surface, draw_character_message)
+        
         title_surface = self.font.render("ARMAS", True, (255, 255, 255))
         surface.blit(title_surface, (10, 40 - 25))
         for i, weapon in enumerate(self.weapons):
             self.draw_munition(surface, weapon, 10, 50 + i * 45, i == self.weapon_index)
 
-    def evaluate_position_and_draw(self, surface):
+    def draw_beaten_animation(self, surface):
+        self.beaten_cycle_count += 1
+        if self.beaten_cycle_count >= 5:
+            self.beaten_cycle_count = 0
+            self.beaten_frame += 1
+            if self.beaten_frame >= len(self.animations[self.beaten_direction + "_beaten"]):
+                self.is_beaten = False
+                self.beaten_frame = 0
+        frame = self.animations[self.prefab_data.direction + "_beaten"][self.beaten_frame]
+        max_width, max_height = self.max_dimensions[self.prefab_data.direction]
+        pos_x = self.prefab_data.x - max_width * 0.5
+        pos_y = self.prefab_data.y - max_height * 0.5
+        surface.blit(frame, (pos_x, pos_y))
+
+    
+    def evaluate_position_and_draw(self, surface, draw_character_message=None):
         if self.prefab_data.direction == "up" or self.prefab_data.direction == "down":
-            super().draw(surface)
-            self.weapons[self.weapon_index].draw(surface)
+            if not self.is_beaten:
+                super().draw(surface)
+            else:
+                self.draw_beaten_animation(surface)
+            self.weapons[self.weapon_index].draw(surface, draw_character_message)
         else:
-            self.weapons[self.weapon_index].draw(surface)
-            super().draw(surface)
+            self.weapons[self.weapon_index].draw(surface, draw_character_message)
+            if not self.is_beaten:
+                super().draw(surface)
+            else:
+                self.draw_beaten_animation(surface)
+            
 
     def draw_munition(self, surface: pygame.Surface, weapon: Weapon, x, y, selected=False):
         background_color = (60, 60, 60, 200) if selected else (40, 40, 40, 150)
