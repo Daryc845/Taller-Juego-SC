@@ -1,7 +1,9 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
+from scripts.game_entities.prefab import Prefab
 from scripts.game_configs import WIDTH, HEIGHT
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
+import math
 
 class GameModel:
     def __init__(self):
@@ -41,11 +43,11 @@ class GameModel:
     def generate_enemies(self, difficulty: str, 
                          enemy_generation_function: Callable[[PrefabData, str], None]):
         # TODO: generar enemigos con dificultad, con lineas de espera
-        enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 100, id=1)
+        enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 100, id=1, type="type1")
         self.environment.add_enemy(enemy1)
-        enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 125, id=2)
+        enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 125, id=2, type="type2", speed=20) # se puede cambiar la velocidad dependiendo de la dificultad
         self.environment.add_enemy(enemy2)
-        enemy3 = PrefabData(WIDTH // 4, HEIGHT // 4 * 3, 'right', 150, id=3)
+        enemy3 = PrefabData(WIDTH // 4, HEIGHT // 4 * 3, 'right', 150, id=3, type="type3")
         self.environment.add_enemy(enemy3)
         enemy_generation_function(self.environment.enemies[0], "type1")
         enemy_generation_function(self.environment.enemies[1], "type2")
@@ -61,37 +63,130 @@ class GameModel:
 
     def evaluate_character_position_action(self, attack_function: Callable[[bool, int, str | None], None], 
                                            move_function: Callable[[str, int], None]):
-        # TODO: calcular movimientos, y ataques al jugador, segun el tipo de enemigo; con agentes
-        # cada tipo de enemigo es un agente distinto
-        #print(self.environment.get_observation_space())
+        ob_sp = self.environment.get_observation_space()
         for en in self.environment.enemies:
-            #attack_function(True, en.id, "melee") # solo para enemigo final (tipo ataque: "melee", "shoot")
-            attack_function(False, en.id, None) # para otros tipos de enemigos
-            #move_function("up", en.id)
-            #move_function("down", en.id)
-            #move_function("right", en.id)
-            #move_function("left", en.id)
+            type = en.type
+            if type == "type1":
+                action, type_action = self.do_enemy_type1_action_policy(en, ob_sp)
+            elif type == "type2":
+                action, type_action = self.do_enemy_type2_action_policy(en, ob_sp)
+            elif type == "type3":
+                action, type_action = self.do_enemy_type3_action_policy(en, ob_sp)
+            elif type == "final":
+                action, type_action = self.do_final_enemy_action_policy(en, ob_sp)
+            if action == "attack":
+                attack_function(type == "final", en.id, type_action)
+            else:
+                move_function(type_action, en.id)
 
-    def do_enemy_type1_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion: dirigirse al jugador o cuando este cerca atacar
-        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
-        pass
+    def do_enemy_type1_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        action, ob_x, ob_y, x, x_width = self.__calculate_melee_attack(enemy, observation_space)
+        if action == "attack":
+            return action, None
+        x_diff = ob_x - x
+        y_diff = ob_y - enemy.y
+        move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+        return "move", move if move else enemy.frame_direction
 
-    def do_enemy_type2_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion: caminar aleatoriamente o dirigirse al jugador, o atacar cuando este cerca
-        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
-        pass
+    def do_enemy_type2_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        action, ob_x, ob_y, x, x_width = self.__calculate_melee_attack(enemy, observation_space)
+        if action == "attack":
+            return action, None
+        if enemy.action_counter == 150:
+            enemy.action_counter = 0
+        if enemy.action_counter == 0:
+            prob = (self.__get_pseudo_random_number() + (1 - (enemy.life / enemy.max_life))) / 2
+            enemy.in_strategy = prob <= 0.5
+        if enemy.in_strategy:
+            num = self.__get_pseudo_random_number()
+            enemy.action_counter += 1
+            return "move", self.__two_dimension_random_walk(num)
+        else:
+            x_diff = ob_x - x
+            y_diff = ob_y - enemy.y
+            enemy.action_counter += 1
+            move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+            return "move", move if move else enemy.frame_direction
 
-    def do_enemy_type3_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion: dirigirse al jugador o atacar (como dispara no es necesario que este cerca)
-        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse
-        pass
+    def do_enemy_type3_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        action, ob_x, ob_y, x, x_width = self.__calculate_shoot_attack(enemy, observation_space)
+        if action == "attack":
+            return action, None
+        x_diff = ob_x - x
+        y_diff = ob_y - enemy.y + 40
+        move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+        return "move", move if move else enemy.frame_direction
 
-    def do_final_enemy_action_policy(self, enemy: PrefabData):
-        # TODO: aplicar politica de accion: caminar aleatoriamente o dirigirse al jugador, 
-        # o atacar cuando este cerca o disparar desde lejos (ya que puede hacer ataque melee o disparar)
-        #retornar la accion a realizar osea atacar o moverse, y la direccion en caso de moverse, o el tipo de ataque (melee o disparo)
-        pass
+    def do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        action, ob_x, ob_y, x_melee, x_width = self.__calculate_melee_attack(enemy, observation_space)
+        if action == "attack":
+            return action, "melee"
+        action, ob_x, ob_y, _, _ = self.__calculate_shoot_attack(enemy, observation_space)
+        if action == "attack":
+            return action, "shoot"
+        if enemy.action_counter == 150:
+            enemy.action_counter = 0
+        if enemy.action_counter == 0:
+            prob = (self.__get_pseudo_random_number() + (1 - (enemy.life / enemy.max_life))) / 2
+            enemy.in_strategy = prob <= 0.5
+        if enemy.in_strategy:
+            num = self.__get_pseudo_random_number()
+            enemy.action_counter += 1
+            return "move", self.__two_dimension_random_walk(num)
+        else:
+            x_diff = ob_x - x_melee
+            y_diff = ob_y - enemy.y
+            enemy.action_counter += 1
+            move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+            return "move", move if move else enemy.frame_direction
+
+    def __two_dimension_random_walk(self, num):
+        if num <= 0.25:
+            return "left"
+        elif num > 0.25 and num <= 0.5:
+            return "up"
+        elif num > 0.5 and num <= 0.75:
+            return "right"
+        return "down"
+
+    def __calculate_melee_attack(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        ob_x, ob_y, ob_max_x, ob_min_x, ob_max_y, ob_min_y = observation_space
+        x_width, _ = enemy.max_dimensions[enemy.frame_direction] if enemy.max_dimensions else (0, 0)
+        x = enemy.x - (x_width // 2) if enemy.frame_direction == "left" else enemy.x + (x_width // 2)
+        if x >= ob_min_x and x <= ob_max_x and enemy.y >= ob_min_y and enemy.y <= ob_max_y:
+            return "attack", ob_x, ob_y, x, x_width
+        return "move", ob_x, ob_y, x, x_width
+    
+    def __calculate_shoot_attack(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+        ob_x, ob_y, ob_max_x, ob_min_x, ob_max_y, ob_min_y = observation_space
+        x_width, _ = enemy.max_dimensions[enemy.frame_direction] if enemy.max_dimensions else (0, 0)
+        x, y = enemy.x + 40 if enemy.frame_direction == "right" else enemy.x - 40, enemy.y - 40
+        direction = enemy.direction
+        lim = enemy.speed * 2
+        on_x = x >= ob_min_x + lim and x <= ob_max_x - lim
+        on_y = y >= ob_min_y + lim and y <= ob_max_y - lim
+        if (direction == "right" and x <= ob_min_x + lim and on_y) or \
+            (direction == "left" and x >= ob_max_x - lim and on_y) or \
+            (direction == "up" and y >= ob_max_y - lim and on_x) or \
+            (direction == "down" and y <= ob_min_y + lim and on_x):
+            return "attack", ob_x, ob_y, x, x_width
+        return "move", ob_x, ob_y, x, x_width
+
+    def __calculate_move_direction(self, x_diff, y_diff, value, speed=5):
+        abs_x_diff = abs(x_diff)
+        abs_y_diff = abs(y_diff)
+        if abs_x_diff > abs_y_diff and abs_x_diff > value:
+            if x_diff > 0:
+                return "right"
+            else:
+                return "left"
+        else:
+            if abs_y_diff <= speed:
+                return None
+            if y_diff > 0:
+                return "down"
+            else:
+                return "up"
 
     def evaluate_attacks(self, chest_generation_function: Callable[[str], None], 
                          delete_enemy_function: Callable[[int], None], 
@@ -116,7 +211,8 @@ class GameModel:
                 elif shoot.type == "melee":
                     shoot.alive = False
         for en in enemies_death:
-            self.environment.enemies.remove(en)
+            if en in self.environment.enemies: 
+                self.environment.enemies.remove(en)
             delete_enemy_function(en.id)
         # TODO: generar cofre si el jugador consigue X puntaje
         self.__generate_chest(chest_generation_function)
@@ -124,7 +220,7 @@ class GameModel:
     def __get_pseudo_random_number(self):
         return self.numbers_model.get_next_pseudo_random_number()
     
-    def __verify_shoot_damage(self, shoot: AttackData, to: PrefabData, is_enemy: bool)-> bool:
+    def __verify_shoot_damage(self, shoot: AttackData, to: Prefab, is_enemy: bool)-> bool:
         direction_to = to.direction
         if is_enemy:
             direction_to = "left"

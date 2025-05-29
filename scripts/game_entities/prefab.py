@@ -1,5 +1,5 @@
 from scripts.game_entities.data_models import PrefabData
-from scripts.game_configs import FRAME_CHANGE_EVERY
+from scripts.game_configs import FRAME_CHANGE_EVERY, WIDTH, HEIGHT
 from scripts.game_persistence import load_animations, load_idle_images
 from abc import ABC
 import pygame
@@ -46,16 +46,12 @@ class Prefab(ABC):
         """
         self.moving = False
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and (not restricted_directions[2]):
-            print("up", restricted_directions) 
             self.move("up")
         elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (not restricted_directions[3]):
-            print("down", restricted_directions) 
             self.move("down")
         elif (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (not restricted_directions[0]):
-            print("left", restricted_directions) 
             self.move("left")
         elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (not restricted_directions[1]):
-            print("right", restricted_directions) 
             self.move("right")
 
     def move(self, direction: str):
@@ -66,13 +62,13 @@ class Prefab(ABC):
             direction (str): Dirección en la que se mueve el objeto ('up', 'down', 'left', 'right').
         """
         self.prefab_data.direction = direction
-        if self.prefab_data.direction == "up":
+        if self.prefab_data.direction == "up" and self.prefab_data.y >= self.speed:
             self.prefab_data.y -= self.speed
-        elif self.prefab_data.direction == "down":
+        elif self.prefab_data.direction == "down" and self.prefab_data.y <= HEIGHT - self.speed:
             self.prefab_data.y += self.speed
-        elif self.prefab_data.direction == "left":
+        elif self.prefab_data.direction == "left" and self.prefab_data.x >= self.speed:
             self.prefab_data.x -= self.speed
-        elif self.prefab_data.direction == "right":
+        elif self.prefab_data.direction == "right" and self.prefab_data.x <= WIDTH - self.speed:
             self.prefab_data.x += self.speed
         self.moving = True
 
@@ -88,6 +84,8 @@ class Prefab(ABC):
                 self.current_frame = (self.current_frame + 1) % len(self.animations[self.prefab_data.direction])
         else:
             self.current_frame = 0
+            
+            
 
     def draw(self, surface: pygame.Surface):
         """

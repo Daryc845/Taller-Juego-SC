@@ -10,13 +10,15 @@ from abc import ABC, abstractmethod
 class Enemy(Prefab, ABC):
     def __init__(self, prefab_data: PrefabData, directions, frame_update=4):
         super().__init__(prefab_data, directions, frame_update, has_idles=False)
-        self.frame_direction = "right"
         self.last_direction = "right"
         self.moving = False
         self.attacking = False
         self.attack_animations, self.attack_max_dimensions = load_animations(self.get_attack_directions())
         self.attack_count_id = 0
-        self.width, self.height = self.max_dimensions[self.frame_direction]
+        self.width, self.height = self.max_dimensions[self.prefab_data.frame_direction]
+        self.blink_counter = 0
+        self.blink_interval = 10
+        self.blink_visible = True
     
     @abstractmethod
     def get_attack_directions(self):
@@ -31,10 +33,10 @@ class Enemy(Prefab, ABC):
 
     def move(self, direction: str):
         super().move(direction)
-        self.frame_direction = direction
-        if self.frame_direction != 'right' and self.frame_direction != 'left':
-            self.frame_direction = "right" if "right" in self.last_direction else "left"
-        self.last_direction = self.frame_direction
+        self.prefab_data.frame_direction = direction
+        if self.prefab_data.frame_direction != 'right' and self.prefab_data.frame_direction != 'left':
+            self.prefab_data.frame_direction = "right" if "right" in self.last_direction else "left"
+        self.last_direction = self.prefab_data.frame_direction
 
     def attack(self):
         """
@@ -53,13 +55,13 @@ class Enemy(Prefab, ABC):
         if self.attacking:
             if self.cycle_count >= self.frame_update:
                 self.cycle_count = 0
-                self.current_frame = (self.current_frame + 1) % len(self.attack_animations[self.frame_direction])
+                self.current_frame = (self.current_frame + 1) % len(self.attack_animations[self.prefab_data.frame_direction])
                 if self.current_frame == 0:
                     self.attacking = False
         elif self.moving:
             if self.cycle_count >= self.frame_update:
                 self.cycle_count = 0
-                self.current_frame = (self.current_frame + 1) % len(self.animations[self.frame_direction])
+                self.current_frame = (self.current_frame + 1) % len(self.animations[self.prefab_data.frame_direction])
         else:
             self.current_frame = 0
     
@@ -70,12 +72,22 @@ class Enemy(Prefab, ABC):
         Args:
             surface (pygame.Surface): Superficie donde se dibujará el enemigo.
         """
+        
         if self.attacking:
-            frame = self.attack_animations[self.frame_direction][self.current_frame]
-            max_width, max_height = self.attack_max_dimensions[self.frame_direction]
+            frame = self.attack_animations[self.prefab_data.frame_direction][self.current_frame]
+            max_width, max_height = self.attack_max_dimensions[self.prefab_data.frame_direction]
         else:
-            frame = self.animations[self.frame_direction][self.current_frame]
-            max_width, max_height = self.max_dimensions[self.frame_direction]
+            self.blink_counter += 1
+            if self.blink_counter >= self.blink_interval:
+                self.blink_counter = 0
+                self.blink_visible = not self.blink_visible
+            frame = self.animations[self.prefab_data.frame_direction][self.current_frame]
+            max_width, max_height = self.max_dimensions[self.prefab_data.frame_direction]
+            if not self.blink_visible:
+                frame.set_alpha(130)
+            else:
+                frame.set_alpha(180)
+         
             
         pos_x = self.prefab_data.x - max_width // 2
         pos_y = self.prefab_data.y - max_height // 2
@@ -89,7 +101,7 @@ class MeleeEnemy(Enemy, ABC):
     def update_animation(self):
         super().update_animation()
         if self.attacking and self.current_frame == 1:
-            x = self.prefab_data.x + (self.width // 2) if "right" in self.frame_direction else self.prefab_data.x - (self.width // 2)
+            x = self.prefab_data.x + (self.width // 2) if "right" in self.prefab_data.frame_direction else self.prefab_data.x - (self.width // 2)
             data = AttackData(self.attack_count_id, x, self.prefab_data.y, 
                               5, self.prefab_data.direction, "melee")
             self.prefab_data.attacks.append(data)
@@ -114,7 +126,7 @@ class ShooterEnemy(Enemy, ABC):
     def update_animation(self):
         super().update_animation()
         if self.attacking and self.current_frame == 1:
-            data = AttackData(self.attack_count_id, self.prefab_data.x + (40 if "right" in self.frame_direction else -40), 
+            data = AttackData(self.attack_count_id, self.prefab_data.x + (40 if "right" in self.prefab_data.frame_direction else -40), 
                             self.prefab_data.y - 40, self.get_shoot_damage(), self.prefab_data.direction, self.get_shoot_type())
             self.prefab_data.attacks.append(data)
             self.attack_count_id += 1

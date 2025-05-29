@@ -30,8 +30,21 @@ class Weapon(ABC):
         self.bullet_image = load_image(os.path.join(bullet_folder_url, "bullet.png"))
         self.shooting = False
         self.max_munition = 100
+        self.shooting_without_munition_counter = 0
         self.remaining_munition = self.max_munition
         self.bullets_fired: list[Bullet] = []
+        self.current_frame = 0
+        
+    def add_munition(self, amount):
+        """
+        Agrega munición al arma.
+
+        Args:
+            amount (int): Cantidad de munición a agregar.
+        """
+        self.remaining_munition += amount
+        if self.remaining_munition > self.max_munition:
+            self.remaining_munition = self.max_munition
 
     def set_position(self, x, y):
         """
@@ -47,6 +60,19 @@ class Weapon(ABC):
         self.x = x
         self.y = y
         return self
+
+    def set_direction(self, direction):
+        """
+        Establece la dirección del arma.
+
+        Args:
+            direction (str): Nueva dirección del arma ('up', 'down', 'left', 'right').
+        """
+        if direction in self.animations:
+            self.direction = direction
+            return self
+        else:
+            raise ValueError(f"Invalid direction: {direction}. Valid directions are: {list(self.animations.keys())}")
 
     def do_action(self, keys, restricted_directions=[False, False, False, False]):
         """
@@ -107,6 +133,7 @@ class Weapon(ABC):
             self.current_frame = (self.current_frame + 1) % len(self.animations[self.direction])
         else:
             self.current_frame = 0
+            self.shooting_without_munition_counter = 50
         if self.current_frame == 1:
             self.shoot(bullet_data_creation)
     
@@ -122,7 +149,7 @@ class Weapon(ABC):
             else:
                 self.bullets_fired.remove(bullet)
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface, draw_character_message=None):
         """
         Dibuja el arma en la superficie proporcionada.
 
@@ -133,6 +160,10 @@ class Weapon(ABC):
             frame = self.animations[self.direction][self.current_frame]
         else:
             frame = self.idles[self.direction]
+            
+        if self.shooting_without_munition_counter > 0:
+            draw_character_message("No hay munición restante")
+            self.shooting_without_munition_counter -= 1
         adjust_positions = self.adjust_position()
         surface.blit(frame, adjust_positions)
 
@@ -179,3 +210,6 @@ class Weapon(ABC):
         Devuelve el daño de la bala que el arma dispara.
         """
         pass
+    
+    def get_icon(self):
+        return self.idles["right"].copy()

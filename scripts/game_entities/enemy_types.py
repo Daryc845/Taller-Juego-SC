@@ -24,6 +24,7 @@ class EnemyType2(MeleeEnemy):
             "right": os.path.join(ENEMY_2_FOLDER, "right")
         }
         super().__init__(prefab_data, dirs)
+        self.speed = self.prefab_data.speed
 
     def get_attack_directions(self):
         return {

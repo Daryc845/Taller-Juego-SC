@@ -36,6 +36,7 @@ def load_animations(directions: dict[str, str]):
         for file in sorted(os.listdir(folder_path)):
             if file.endswith(".png") and file != "idle.png":
                 image = load_image(os.path.join(folder_path, file))
+                print(file)
                 frames.append(image)
                 width, height = image.get_size()
                 max_width = max(max_width, width)
