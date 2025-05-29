@@ -30,7 +30,7 @@ class Weapon(ABC):
         self.bullet_image = load_image(os.path.join(bullet_folder_url, "bullet.png"))
         self.shooting = False
         self.max_munition = 100
-        self.shooting_without_munition = False
+        self.shooting_without_munition_counter = 0
         self.remaining_munition = self.max_munition
         self.bullets_fired: list[Bullet] = []
         self.current_frame = 0
@@ -133,7 +133,7 @@ class Weapon(ABC):
             self.current_frame = (self.current_frame + 1) % len(self.animations[self.direction])
         else:
             self.current_frame = 0
-            self.shooting_without_munition = True
+            self.shooting_without_munition_counter = 50
         if self.current_frame == 1:
             self.shoot(bullet_data_creation)
     
@@ -161,9 +161,9 @@ class Weapon(ABC):
         else:
             frame = self.idles[self.direction]
             
-        if self.shooting_without_munition:
+        if self.shooting_without_munition_counter > 0:
             draw_character_message("No hay munición restante")
-            self.shooting_without_munition = False
+            self.shooting_without_munition_counter -= 1
         adjust_positions = self.adjust_position()
         surface.blit(frame, adjust_positions)
 
