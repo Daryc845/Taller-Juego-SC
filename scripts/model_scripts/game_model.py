@@ -1,9 +1,7 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
-from scripts.game_entities.prefab import Prefab
 from scripts.game_configs import WIDTH, HEIGHT
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
-import math
 
 class GameModel:
     def __init__(self):
@@ -11,6 +9,7 @@ class GameModel:
         self.environment = EnvironmentData(WIDTH, HEIGHT)
         self.in_pause = False # TODO: pausa para generar enemigos
         self.terminate = False # TODO: para terminar ejecucion hilo de generacion de enemigos
+        self.enemies_counter = 0
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
@@ -33,29 +32,45 @@ class GameModel:
         #TODO: verificar que se venza el enemigo final, llamar a la funcion si se vence
         import time
         time.sleep(7)
-        game_won_function(self.environment.character_points)
+        game_won_function(self.environment.total_character_points)
         pass
 
     def __generate_chest(self, chest_generation_function: Callable[[str], None]):
-        # TODO: generar cofre, puede ser con montecarlo o markov
-        chest_generation_function("shotgun")
+        print("Generando cofre")
+        type = self.__get_chest_type()
+        chest_generation_function(type)
 
     def generate_enemies(self, difficulty: str, 
                          enemy_generation_function: Callable[[PrefabData, str], None]):
         # TODO: generar enemigos con dificultad, con lineas de espera
-        enemy1 = PrefabData(WIDTH // 4, HEIGHT // 4, 'right', 100, id=1, type="type1")
-        self.environment.add_enemy(enemy1)
-        enemy2 = PrefabData(WIDTH // 4 * 3, HEIGHT // 4, 'left', 125, id=2, type="type2", speed=20) # se puede cambiar la velocidad dependiendo de la dificultad
-        self.environment.add_enemy(enemy2)
-        enemy3 = PrefabData(WIDTH // 4, HEIGHT // 4 * 3, 'right', 150, id=3, type="type3")
-        self.environment.add_enemy(enemy3)
-        enemy_generation_function(self.environment.enemies[0], "type1")
-        enemy_generation_function(self.environment.enemies[1], "type2")
-        enemy_generation_function(self.environment.enemies[2], "type3")
+        for _ in range(3):
+            en, type = self.generate_enemy()
+            enemy_generation_function(en, type)
 
     def generate_enemy(self):
-        # TODO: generar enemigo, escoger el tipo de enemigo puede ser con markov o montecarlo
-        pass
+        type, life, speed = self.__get_montecarlo_enemy()
+        self.enemies_counter += 1
+        id = self.enemies_counter
+        x, y = self.__get_enemy_position()
+        enemy = PrefabData(x, y, 'right', life, type=type, speed=speed, id=id)
+        self.environment.add_enemy(enemy)
+        return enemy, type
+
+    def __get_enemy_position(self):
+        num1 = self.__get_pseudo_random_number()
+        if num1 <= 0.5:
+            return 0, int(self.get_ni_number(0, HEIGHT))
+        else:
+            return int(self.get_ni_number(0, WIDTH)), 0
+
+    def __get_montecarlo_enemy(self):
+        num = self.__get_pseudo_random_number()
+        if num <= 0.5:
+            return "type1", 100, 5
+        elif num <= 0.85:
+            return "type2", 125, 7
+        else:
+            return "type3", 150, 5
 
     def generate_final_enemy(self):
         # TODO: generar enemigo final
@@ -200,6 +215,7 @@ class GameModel:
                     if en.life <= 0:
                         enemies_death.append(en)
                         self.environment.character_points += 10
+                        self.environment.total_character_points += 10
                     break
         for en in self.environment.enemies:
             en_shoots = list(filter(lambda x: x.alive, en.attacks))
@@ -214,13 +230,18 @@ class GameModel:
             if en in self.environment.enemies: 
                 self.environment.enemies.remove(en)
             delete_enemy_function(en.id)
-        # TODO: generar cofre si el jugador consigue X puntaje
-        self.__generate_chest(chest_generation_function)
+        if self.environment.character_points == 20:
+            self.__generate_chest(chest_generation_function)
+            self.environment.character_points = 0
 
     def __get_pseudo_random_number(self):
         return self.numbers_model.get_next_pseudo_random_number()
     
-    def __verify_shoot_damage(self, shoot: AttackData, to: Prefab, is_enemy: bool)-> bool:
+    def get_ni_number(self, a, b):
+        ri = self.__get_pseudo_random_number()
+        return a + (b - a) * ri
+    
+    def __verify_shoot_damage(self, shoot: AttackData, to: PrefabData, is_enemy: bool)-> bool:
         direction_to = to.direction
         if is_enemy:
             direction_to = "left"
@@ -261,3 +282,40 @@ class GameModel:
             return 1
         else:
             return 0
+        
+    def __get_montecarlo_weapon(self):
+        num = self.__get_pseudo_random_number()
+        if num < 0.5:
+            return "submachine"
+        elif num < 0.8:
+            return "rifle"
+        elif num < 0.95:
+            return "shotgun"
+        else:
+            return "raygun"
+        
+    markov_reward = {
+        "munition":{'munition': 0.3, 'health': 0.3, 'weapon': 0.4},
+        "health":{'munition': 0.3, 'health': 0.2, 'weapon': 0.5},
+        "weapon":{'munition': 0.35, 'health': 0.55, 'weapon': 0.1}
+    }
+
+    current_reward = "munition" # estado inicial en munition
+
+    def __get_reward(self):
+        num = self.__get_pseudo_random_number()
+        if num <= self.markov_reward[self.current_reward]["munition"]:
+            self.current_reward = "munition"
+            return "munition"
+        elif num <= self.markov_reward[self.current_reward]["munition"] + self.markov_reward[self.current_reward]["health"]:
+            self.current_reward = "health"
+            return "health"
+        else:
+            self.current_reward = "weapon"
+            return "weapon"
+        
+    def __get_chest_type(self):
+        type = self.__get_reward()
+        if type == "weapon":
+            type = self.__get_montecarlo_weapon()
+        return type

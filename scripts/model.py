@@ -38,3 +38,6 @@ class Model(IModel):
     def quit_game(self):
         self.game_model.terminate = True
         self.game_model.numbers_model.terminate = True
+
+    def get_random_between(self, min, max):
+        return self.game_model.get_ni_number(min, max)

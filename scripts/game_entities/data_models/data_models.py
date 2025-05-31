@@ -33,6 +33,7 @@ class EnvironmentData:
         self.character: PrefabData = PrefabData(width // 2, height // 2, "down", 500)
         self.enemies: list[PrefabData] = []
         self.character_points = 0
+        self.total_character_points = 0
 
     def get_observation_space(self):
         """
@@ -55,6 +56,7 @@ class EnvironmentData:
         self.character.x = self.width // 2
         self.character.y = self.height // 2
         self.character_points = 0
+        self.total_character_points = 0
         self.character.direction = "down"
         self.character.life = 500
         self.character.attacks.clear()

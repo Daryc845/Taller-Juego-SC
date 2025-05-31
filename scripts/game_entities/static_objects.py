@@ -4,9 +4,7 @@ from scripts.game_persistence import load_image
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_configs import FRAME_CHANGE_EVERY
 from scripts.game_entities.weapon_types import Raygun, Submachine, Shotgun, Rifle
-from scripts.numbs_aux import generate_numbers
 from scripts.game_entities.static_object import StaticObject
-import time
 
 class Chest(StaticObject):
     """
@@ -14,8 +12,8 @@ class Chest(StaticObject):
     Solo se anima cuando el personaje está cerca.
     """
     
-    def __init__(self, prefab_data: PrefabData, show_timed_message, draw_character_message):
-        animation_path = os.path.join("resources", "objects", "Chest", "Open-chest-animation")
+    def __init__(self, prefab_data: PrefabData, show_timed_message, draw_character_message, type: str):
+        animation_path = os.path.join("resources", "objects", "Chest", "Open-Chest-Animation")
         super().__init__(prefab_data, animation_path, has_eternal_animation=False)
         self.valid_open = False
         self.animating = False
@@ -28,6 +26,7 @@ class Chest(StaticObject):
         self.blink_counter = 0
         self.blink_interval = 10
         self.blink_visible = True
+        self.type = type
     
     def update(self, character):
         """
@@ -59,9 +58,7 @@ class Chest(StaticObject):
         Se llama cuando termina la animación de apertura.
         """
         self.valid_open = False
-        self.random_num = self._generate_random_number(0)
-        self.reward_config = self._get_reward_config()
-        self.reward_type = self._select_reward_type(self.random_num, self.reward_config)
+        self.reward_type = self.type
         
         if self.reward_type == 'munition':
             print("VAMOOOOOOOOOOO")
@@ -69,7 +66,7 @@ class Chest(StaticObject):
         elif self.reward_type == 'health':
             self.reward = Hearth(PrefabData(self.prefab_data.x, self.prefab_data.y - 35, direction="Down", life=1))
         #METODO MONTECARLO PARA SELECCIONAR EL ARMA
-        if self.reward_type == 'weapon':
+        else:
             self.select_weapon()
         
     def show_chest(self, x, y):
@@ -83,13 +80,11 @@ class Chest(StaticObject):
             self.is_open = True
         
     def select_weapon(self):
-        #METODO MONTECARLO PARA SELECCIONAR EL ARMA
-        random_num = self._generate_random_number(10)
-        if random_num < 0.5:
+        if self.reward_type == 'submachine':
             self.reward = Submachine(self.prefab_data.x, self.prefab_data.y - 35, self.prefab_data.direction)
-        elif random_num < 0.8:
+        elif self.reward_type == 'rifle':
             self.reward = Rifle(self.prefab_data.x, self.prefab_data.y - 35, self.prefab_data.direction)
-        elif random_num < 0.95:
+        elif self.reward_type == 'shotgun':
             self.reward = Shotgun(self.prefab_data.x, self.prefab_data.y - 35, self.prefab_data.direction)
         else:
             self.reward = Raygun(self.prefab_data.x, self.prefab_data.y - 35, self.prefab_data.direction)
@@ -97,7 +92,7 @@ class Chest(StaticObject):
     def get_weapon(self, character):
         if not self.valid_open and self.check_character_nearby(character):
             self._reset_chest_state()
-            self._apply_reward(self.reward_type, character, self.random_num)
+            self._apply_reward(self.reward_type, character)
             self.reward = None
             self.is_alive = False
 
@@ -107,40 +102,14 @@ class Chest(StaticObject):
         self.open_delay = 60
         self.current_frame = 0
 
-    def _generate_random_number(self, number):
-        conf = {
-            'k': 3,
-            'g': 10,
-            'c': 1,
-            'X0': int(time.time()) % 1000
-        }
-        return generate_numbers(conf)[number]
-
-    def _get_reward_config(self):
-        #CADENAS DE MARKOV PARA SELECCIONAR RECOMPENSAS SEGUN LA ULTIMA RECOMPENSA
-        return {
-            None: {'munition': 0.33, 'health': 0.33, 'weapon': 0.34},
-            'munition': {'munition': 0.3, 'health': 0.3, 'weapon': 0.4},
-            'health': {'munition': 0.3, 'health': 0.2, 'weapon': 0.5},
-            'weapon': {'munition': 0.35, 'health': 0.55, 'weapon': 0.1}
-        }.get(self.last_reward, {'munition': 0.33, 'health': 0.33, 'weapon': 0.34})
-
-    def _select_reward_type(self, random_num, reward_config):
-        cumulative_prob = 0
-        for reward_type, prob in reward_config.items():
-            cumulative_prob += prob
-            if random_num < cumulative_prob:
-                return reward_type
-        return 'munition'  # Por defecto si hay algún error de redondeo
-
     def do_action(self, keys, character):
         if self.check_character_nearby(character) and not self.is_open and keys[pygame.K_5]:
             self.open_chest()
         elif self.check_character_nearby(character) and self.is_open and keys[pygame.K_5]:
             self.get_weapon(character)
-                
 
-    def _apply_reward(self, reward_type, character, random_num):
+    def _apply_reward(self, reward_type, character):
+        type = "weapon" if reward_type != "health" and reward_type != "munition" else reward_type
         reward_actions = {
             'munition': lambda: character.add_munition(60),
             'health': lambda: character.heal(40),
@@ -153,9 +122,9 @@ class Chest(StaticObject):
             'weapon': f"¡Has obtenido una recompensa: Nueva Arma(" + self.reward.get_name() + ")!"
         }
         
-        reward_actions[reward_type]()
-        self.last_reward = reward_type
-        self.show_timed_message(reward_messages[reward_type])
+        reward_actions[type]()
+        self.last_reward = type
+        self.show_timed_message(reward_messages[type])
     
     def draw(self, surface: pygame.Surface, character):
         """
@@ -218,9 +187,6 @@ class Chest(StaticObject):
             pygame.Surface: Superficie con el icono del cofre
         """
         return self.idle_image
-    
-                
-
         
 class Torch(StaticObject):
     """

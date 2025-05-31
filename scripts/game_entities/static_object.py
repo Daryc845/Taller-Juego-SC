@@ -3,7 +3,7 @@ import os
 from scripts.game_persistence import load_animations, load_image
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_configs import FRAME_CHANGE_EVERY
-from abc import ABC, abstractmethod
+from abc import ABC
 
 class StaticObject(ABC):
     """

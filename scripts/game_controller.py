@@ -1,9 +1,7 @@
 from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
-from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy, Weapon, Shotgun
-from scripts.game_entities.static_objects import Chest, Torch
+from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy, Weapon, Chest, Torch
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
-from scripts.numbs_aux import generate_numbers
 from scripts.game_scenes import StartScene, BaseScene, NextPhaseLoadingScene
 import pygame
 import time
@@ -31,7 +29,7 @@ class GameScene(IView, BaseScene):
         self.is_in_pause = False
         self.chest = None
         self.start_scene = StartScene(load_function=lambda x: self.presenter.generate_game_configs(x))
-        self.leaved_weapons: list[Weapon] = [Shotgun(300, 300, direction="left")]
+        self.leaved_weapons: list[Weapon] = []
         self.key_pressed = { pygame.K_1: False, pygame.K_2: False, pygame.K_3: False, pygame.K_5: False, pygame.K_p: False }
         self.key_processed = { pygame.K_1: False, pygame.K_2: False, pygame.K_3: False, pygame.K_5: False, pygame.K_p: False }
         self.text_font = pygame.font.SysFont("Arial", 15)
@@ -46,11 +44,10 @@ class GameScene(IView, BaseScene):
         self.preparing_time = 0
         
         self.add_chest_generation_points()
-        self.generate_chest()
+        # self.generate_chest()
         
-        self.torches = []
+        self.torches : list[Torch] = []
         self.add_torch_generation_points()
-        self.add_random_torches(5)
         
         self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
                                                      (lambda: self.next_phase_load()))
@@ -91,43 +88,14 @@ class GameScene(IView, BaseScene):
         multiplica por 10, convierte a entero y crea antorchas en los puntos correspondientes.
         La semilla inicial se basa en el tiempo actual.
         """
-        conf = {
-            'k': 3,
-            'g': 4,
-            'X0': int(time.time()),  # Semilla basada en el tiempo
-            'c': 5
-        }
-        numbers = generate_numbers(conf)
         indices = set()
-        i = 0
-        while len(indices) < num_torches and i < len(numbers):
-            idx = int(round(numbers[i], 1) * 10)
-            idx = min(idx, len(self.torch_generation_points) - 1)
+        while len(indices) < num_torches:
+            idx = int(self.presenter.get_random_between(0, len(self.torch_generation_points) - 1))
             if idx not in indices:
                 indices.add(idx)
-            i += 1
         for idx in indices:
             point = self.torch_generation_points[idx]
             self.add_torch(*point)
-    
-    def generate_chest_generation_point(self):
-        """
-        Genera un índice válido para chest_generation_points usando generate_numbers(conf).
-        El índice nunca será igual ni mayor al tamaño del arreglo de puntos.
-        """
-        conf = {
-            'k': 4,
-            'g': 5,
-            'X0': int(time.time()),
-            'c': 5
-        }
-        points_len = len(self.chest_generation_points)
-        while True:
-            number = generate_numbers(conf)[0]
-            index = int(round(number, 1) * 10)
-            if 0 <= index < points_len:
-                return index
-            conf['X0'] += 1
 
     def next_phase_load(self):
         self.leaved_weapons.clear()
@@ -136,22 +104,23 @@ class GameScene(IView, BaseScene):
             wp.set_position(self.character.prefab_data.x, self.character.prefab_data.y - 35)
         self.preparing_second_phase = False
         
-
     def set_presenter(self, presenter: IPresenter):
         self.presenter = presenter
     
     def show_character(self, prefab_character: PrefabData):
         if self.character is None:
             self.character = Character(prefab_character)
+            self.add_random_torches(5)
         else:
             self.__reset_all()
         self.is_in_game = True
 
     def __reset_all(self):
+        self.torches.clear()
         self.character.reset_character()
         self.enemies.clear()
         self.leaved_weapons.clear()
-        self.leaved_weapons.append(Shotgun(300, 300, direction="left"))
+        self.add_random_torches(5)
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -170,20 +139,19 @@ class GameScene(IView, BaseScene):
             res = res[0]
             res.move(direction)
 
-    def show_chest(self, weapon_type: str = None):
+    def show_chest(self, type: str = None):
         """Muestra el cofre en una posición aleatoria de los puntos de generación predefinidos."""
         """generation_point_index = self.generate_chest_generation_point()
         selected_point = self.chest_generation_points[generation_point_index]
         self.chest.show_chest(*selected_point)"""
-        pass
+        self.generate_chest(type)
         
-        
-    def generate_chest(self):
+    def generate_chest(self, type: str):
         """Genera un cofre en una posición aleatoria de los puntos de generación predefinidos"""
-        generation_point_index = self.generate_chest_generation_point()
+        generation_point_index = int(self.presenter.get_random_between(0, len(self.chest_generation_points) - 1))
         selected_point = self.chest_generation_points[generation_point_index]
         chest_data = PrefabData(*selected_point, direction="down", life=1)
-        self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message)
+        self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message, type)
         
     def add_torch(self, x: int, y: int):
         """Añade una antorcha en la posición especificada"""
@@ -297,8 +265,9 @@ class GameScene(IView, BaseScene):
             self.in_weapons_add_remove_handle()
             keys = pygame.key.get_pressed()
 
-            self.chest.do_action(keys, self.character)    
-            self.chest.update(self.character)
+            if self.chest:
+                self.chest.do_action(keys, self.character)    
+                self.chest.update(self.character)
             
             for torch in self.torches:
                 torch.update(self.character)
@@ -408,18 +377,17 @@ class GameScene(IView, BaseScene):
         for wp in self.leaved_weapons:
             wp.draw(screen)
         
-        
-        
         for torch in self.torches:
             torch.draw(screen)
         self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
         
-        if self.character.prefab_data.y > self.chest.prefab_data.y * 0.99:
-            self.chest.draw(screen, self.character)
-            self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
-        else:
-            self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
-            self.chest.draw(screen, self.character)
+        if self.chest:
+            if self.character.prefab_data.y > self.chest.prefab_data.y * 0.99:
+                self.chest.draw(screen, self.character)
+                self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
+            else:
+                self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
+                self.chest.draw(screen, self.character)
             
         if self.cannot_leave_weapon:
             self.draw_cannot_leave_weapon()

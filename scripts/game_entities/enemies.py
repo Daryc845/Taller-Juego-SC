@@ -100,7 +100,8 @@ class MeleeEnemy(Enemy, ABC):
 
     def update_animation(self):
         super().update_animation()
-        if self.attacking and self.current_frame == 1:
+        middle_animation = len(self.attack_animations[self.prefab_data.frame_direction]) // 2
+        if self.attacking and self.current_frame == middle_animation:
             x = self.prefab_data.x + (self.width // 2) if "right" in self.prefab_data.frame_direction else self.prefab_data.x - (self.width // 2)
             data = AttackData(self.attack_count_id, x, self.prefab_data.y, 
                               5, self.prefab_data.direction, "melee")

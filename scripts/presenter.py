@@ -26,8 +26,8 @@ class Presenter(IPresenter):
     def do_enemy_move(self, direction, enemy_id):
         self.view.do_enemy_move(direction, enemy_id)
 
-    def show_chest(self, weapon_type: str):
-        self.view.show_chest(weapon_type)
+    def show_chest(self, type: str):
+        self.view.show_chest(type)
 
     def delete_enemy(self, enemy_id: int):
         self.view.delete_enemy(enemy_id)
@@ -49,3 +49,6 @@ class Presenter(IPresenter):
 
     def game_won(self, obtain_points: int):
         self.view.game_won(obtain_points)
+
+    def get_random_between(self, min, max):
+        return self.model.get_random_between(min, max)

@@ -26,6 +26,10 @@ class IModel(ABC):
     def start_second_phase(self):
         pass
 
+    @abstractmethod
+    def get_random_between(self, min, max):
+        pass
+
 class IView(ABC):
     @abstractmethod
     def set_presenter(self, presenter):
@@ -48,7 +52,7 @@ class IView(ABC):
         pass
 
     @abstractmethod
-    def show_chest(self, weapon_type: str):
+    def show_chest(self, type: str):
         pass
 
     @abstractmethod
@@ -93,7 +97,7 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def show_chest(self, weapon_type: str):
+    def show_chest(self, type: str):
         pass
 
     @abstractmethod
@@ -122,4 +126,8 @@ class IPresenter(ABC):
 
     @abstractmethod
     def game_won(self, obtain_points: int):
+        pass
+
+    @abstractmethod
+    def get_random_between(self, min, max):
         pass
