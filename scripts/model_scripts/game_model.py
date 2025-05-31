@@ -52,15 +52,19 @@ class GameModel:
         type, life, speed = self.__get_montecarlo_enemy()
         self.enemies_counter += 1
         id = self.enemies_counter
-        x, y = self.__get_enemy_position()
+        x, y = self.__get_montecarlo_enemy_position()
         enemy = PrefabData(x, y, 'right', life, type=type, speed=speed, id=id)
         self.environment.add_enemy(enemy)
         return enemy, type
 
-    def __get_enemy_position(self):
+    def __get_montecarlo_enemy_position(self):
         num1 = self.__get_pseudo_random_number()
-        if num1 <= 0.5:
+        if num1 <= 0.25:
             return 0, int(self.get_ni_number(0, HEIGHT))
+        elif num1 <= 0.5:
+            return WIDTH, int(self.get_ni_number(0, HEIGHT))
+        elif num1 <= 0.75:
+            return int(self.get_ni_number(0, WIDTH)), HEIGHT
         else:
             return int(self.get_ni_number(0, WIDTH)), 0
 
