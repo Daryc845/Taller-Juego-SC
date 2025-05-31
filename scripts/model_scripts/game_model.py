@@ -2,6 +2,7 @@ from scripts.game_entities.data_models import PrefabData, EnvironmentData, Attac
 from scripts.game_configs import WIDTH, HEIGHT
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
+import math
 
 class GameModel:
     def __init__(self):
@@ -107,19 +108,13 @@ class GameModel:
         action, ob_x, ob_y, x, x_width = self.__calculate_melee_attack(enemy, observation_space)
         if action == "attack":
             return action, None
-        if enemy.action_counter == 150:
-            enemy.action_counter = 0
-        if enemy.action_counter == 0:
-            prob = (self.__get_pseudo_random_number() + (1 - (enemy.life / enemy.max_life))) / 2
-            enemy.in_strategy = prob <= 0.5
+        enemy.in_strategy = (enemy.life / enemy.max_life) > 0.7 and not self.__is_close_to_player(ob_x, ob_y, x, enemy.y, x_width)
         if enemy.in_strategy:
             num = self.__get_pseudo_random_number()
-            enemy.action_counter += 1
             return "move", self.__two_dimension_random_walk(num)
         else:
             x_diff = ob_x - x
             y_diff = ob_y - enemy.y
-            enemy.action_counter += 1
             move = self.__calculate_move_direction(x_diff, y_diff, x_width)
             return "move", move if move else enemy.frame_direction
 
@@ -139,19 +134,13 @@ class GameModel:
         action, ob_x, ob_y, _, _ = self.__calculate_shoot_attack(enemy, observation_space)
         if action == "attack":
             return action, "shoot"
-        if enemy.action_counter == 150:
-            enemy.action_counter = 0
-        if enemy.action_counter == 0:
-            prob = (self.__get_pseudo_random_number() + (1 - (enemy.life / enemy.max_life))) / 2
-            enemy.in_strategy = prob <= 0.5
+        enemy.in_strategy = (enemy.life / enemy.max_life) > 0.7 and not self.__is_close_to_player(ob_x, ob_y, x_melee, enemy.y, x_width)
         if enemy.in_strategy:
             num = self.__get_pseudo_random_number()
-            enemy.action_counter += 1
             return "move", self.__two_dimension_random_walk(num)
         else:
             x_diff = ob_x - x_melee
             y_diff = ob_y - enemy.y
-            enemy.action_counter += 1
             move = self.__calculate_move_direction(x_diff, y_diff, x_width)
             return "move", move if move else enemy.frame_direction
 
@@ -202,6 +191,10 @@ class GameModel:
                 return "down"
             else:
                 return "up"
+        
+    def __is_close_to_player(self, ob_x: int, ob_y: int, x: int, y: int, x_width: int):
+        euclidean_distance = math.sqrt((ob_x - x) ** 2 + (ob_y - y) ** 2)
+        return euclidean_distance <= x_width * 1.5
 
     def evaluate_attacks(self, chest_generation_function: Callable[[str], None], 
                          delete_enemy_function: Callable[[int], None], 

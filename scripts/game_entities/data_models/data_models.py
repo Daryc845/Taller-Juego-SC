@@ -22,8 +22,7 @@ class PrefabData:
         self.attacks: list[AttackData] = []
         self.frame_direction = frame_direction
         self.type = type # tipos: type1, type2, type3, final, (None en caso del jugador)
-        self.action_counter = 0
-        self.in_strategy = False
+        self.in_strategy = True
         self.speed = speed
 
 class EnvironmentData:
