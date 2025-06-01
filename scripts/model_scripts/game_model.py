@@ -37,11 +37,10 @@ class GameModel:
                 break
 
     def verify_second_phase(self, game_won_function: Callable[[int], None]):
-        #TODO: verificar que se venza el enemigo final, llamar a la funcion si se vence
-        import time
-        time.sleep(7)
-        game_won_function(self.environment.total_character_points)
-        pass
+        while not self.terminate:
+            if len(self.environment.enemies) == 0:
+                game_won_function(self.environment.total_character_points)
+                break
 
     def __generate_chest(self, chest_generation_function: Callable[[str], None]):
         print("Generando cofre")
@@ -63,7 +62,6 @@ class GameModel:
                     continue
                 en, type = self.generate_enemy()
                 enemy_generation_function(en, type)
-                enemy_counter += 1
                 ri = self.__get_pseudo_random_number()
                 iat = - math.log(1 - ri, math.e) / self.lambda_value
                 segs = iat * 60
@@ -94,19 +92,25 @@ class GameModel:
 
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()
-        if num <= 0.5:
+        if num <= 0.45:
             return "type1", 100, 5
-        elif num <= 0.85:
+        elif num <= 0.8:
             return "type2", 125, 7
         else:
             return "type3", 150, 5
 
     def generate_final_enemy(self):
-        # TODO: generar enemigo final
-        pass
+        life = 300
+        speed = 7
+        id = 0
+        x, y = self.__get_montecarlo_enemy_position()
+        enemy = PrefabData(x, y, 'right', life, type="final", speed=speed, id=id)
+        self.environment.add_enemy(enemy)
+        return enemy
 
     def evaluate_character_position_action(self, attack_function: Callable[[bool, int, str | None], None], 
-                                           move_function: Callable[[str, int], None]):
+                                           move_function: Callable[[str, int], None],
+                                           enemy_generation_function: Callable[[PrefabData, str], None]):
         ob_sp = self.environment.get_observation_space()
         for en in self.environment.enemies:
             type = en.type
@@ -117,7 +121,9 @@ class GameModel:
             elif type == "type3":
                 action, type_action = self.do_enemy_type3_action_policy(en, ob_sp)
             elif type == "final":
-                action, type_action = self.do_final_enemy_action_policy(en, ob_sp)
+                action, type_action = self.do_final_enemy_action_policy(en, ob_sp, enemy_generation_function)
+                if action is None:
+                    continue
             if action == "attack":
                 attack_function(type == "final", en.id, type_action)
             else:
@@ -155,13 +161,20 @@ class GameModel:
         move = self.__calculate_move_direction(x_diff, y_diff, x_width)
         return "move", move if move else enemy.frame_direction
 
-    def do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+    def do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int],
+                                     enemy_generation_function: Callable[[PrefabData, str], None]):
         action, ob_x, ob_y, x_melee, x_width = self.__calculate_melee_attack(enemy, observation_space)
         if action == "attack":
             return action, "melee"
         action, ob_x, ob_y, _, _ = self.__calculate_shoot_attack(enemy, observation_space)
         if action == "attack":
             return action, "shoot"
+        if enemy.genration_enemies_counter == 40:
+            en, type = self.generate_enemy()
+            enemy_generation_function(en, type)
+            enemy.genration_enemies_counter = 0
+            return None, None
+        enemy.genration_enemies_counter += 1
         enemy.in_strategy = (enemy.life / enemy.max_life) > 0.7 and not self.__is_close_to_player(ob_x, ob_y, x_melee, enemy.y, x_width)
         if enemy.in_strategy:
             num = self.__get_pseudo_random_number()

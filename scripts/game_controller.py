@@ -1,5 +1,5 @@
 from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
-from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, Enemy, Weapon, Chest, Torch
+from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, FinalEnemy, Enemy, Weapon, Chest, Torch
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_scenes import StartScene, BaseScene, NextPhaseLoadingScene
@@ -214,7 +214,7 @@ class GameScene(IView, BaseScene):
         elif type == "type3":
             self.enemies.append(EnemyType3(prefab_enemy))
         elif type == "final":
-            # TODO: generar enemigo final
+            self.enemies.append(FinalEnemy(prefab_enemy))
             pass
 
     def game_won(self, obtain_points):

@@ -24,6 +24,7 @@ class PrefabData:
         self.type = type # tipos: type1, type2, type3, final, (None en caso del jugador)
         self.in_strategy = True
         self.speed = speed
+        self.genration_enemies_counter = 0
 
 class EnvironmentData:
     def __init__(self, width: int, height: int):

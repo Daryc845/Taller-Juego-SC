@@ -88,7 +88,6 @@ class Enemy(Prefab, ABC):
             else:
                 frame.set_alpha(180)
          
-            
         pos_x = self.prefab_data.x - max_width // 2
         pos_y = self.prefab_data.y - max_height // 2
         surface.blit(frame, (pos_x, pos_y))

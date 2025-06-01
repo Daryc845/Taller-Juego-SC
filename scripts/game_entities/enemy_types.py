@@ -2,6 +2,7 @@ from scripts.game_configs import ENEMY_1_FOLDER, ENEMY_2_FOLDER, ENEMY_3_FOLDER
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_entities.enemies import MeleeEnemy,ShooterEnemy
 import os
+import pygame
 
 class EnemyType1(MeleeEnemy):
     def __init__(self, prefab_data: PrefabData):
@@ -52,7 +53,7 @@ class EnemyType3(ShooterEnemy):
     def get_shoot_type(self):
         return "enemy_3_shoot"
 
-class FinalEnemy(ShooterEnemy):#, MeleeEnemy):
+class FinalEnemy(ShooterEnemy, MeleeEnemy):
     def __init__(self, prefab_data: PrefabData):
         dirs = {
             "left": os.path.join(ENEMY_3_FOLDER, "left"),
@@ -60,8 +61,6 @@ class FinalEnemy(ShooterEnemy):#, MeleeEnemy):
         }
         super().__init__(prefab_data, dirs)
         self.current_attack_type = "melee"
-        #TODO: diferentes dimensiones y animaciones de ataque, 
-        # hacer draw y update animation personalizado, para usar la animacion y dimensiones correspondiente
 
     def get_attack_directions(self):
         return {
@@ -70,8 +69,20 @@ class FinalEnemy(ShooterEnemy):#, MeleeEnemy):
         }
     
     def attack(self, type: str):
-        super().attack()
         self.current_attack_type = type
+        super().attack()
+
+    def draw(self,surface: pygame.Surface, in_pause=False):
+        if self.current_attack_type == "melee":
+            MeleeEnemy.draw(self, surface, in_pause=in_pause)
+        else:
+            ShooterEnemy.draw(self, surface, in_pause=in_pause)
+
+    def update_animation(self):
+        if self.current_attack_type == "melee":
+            MeleeEnemy.update_animation(self)
+        else:
+            ShooterEnemy.update_animation(self)
     
     def get_shoot_damage(self):
         return 9
