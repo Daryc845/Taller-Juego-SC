@@ -5,6 +5,7 @@ from scripts.game_entities.data_models import PrefabData
 from scripts.game_scenes import StartScene, BaseScene, NextPhaseLoadingScene
 import pygame
 import time
+import threading
 
 """
 Módulo principal del juego. Configura la pantalla, carga los recursos y maneja el bucle principal del juego.
@@ -42,15 +43,12 @@ class GameScene(IView, BaseScene):
         self.couting_time = False
         self.help_controls_counter = 500
         self.preparing_time = 0
-        
         self.add_chest_generation_points()
-        # self.generate_chest()
-        
         self.torches : list[Torch] = []
         self.add_torch_generation_points()
-        
         self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
                                                      (lambda: self.next_phase_load()))
+        self.preparing_new_wave = False
 
     def add_chest_generation_points(self):
         """Añade puntos de generación del cofre en posiciones predefinidas."""
@@ -162,6 +160,15 @@ class GameScene(IView, BaseScene):
         enemy = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
         if len(enemy) > 0:
             self.enemies.remove(enemy[0])
+
+    def on_new_wave(self):
+        self.preparing_new_wave = True
+        def other_actions():
+            time.sleep(1)
+            self.torches.clear()
+            self.add_random_torches(5)
+            self.preparing_new_wave = False
+        threading.Thread(target=other_actions, daemon=True).start()
 
     def character_death(self):
         self.start_scene.game_over = True
@@ -373,6 +380,15 @@ class GameScene(IView, BaseScene):
             y += line_height
 
     def draw(self):
+        if self.preparing_new_wave:
+            pygame.draw.rect(screen, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
+            font = pygame.font.SysFont("Arial", 30, bold=True)
+            text = font.render("Nueva oleada", True, (255, 255, 255))
+            x = (WIDTH - text.get_width()) // 2
+            y = (HEIGHT - text.get_height()) // 2
+            screen.blit(text, (x, y))
+            pygame.display.flip()
+            return
         screen.blit(background_image, (0, 0))
         for wp in self.leaved_weapons:
             wp.draw(screen)

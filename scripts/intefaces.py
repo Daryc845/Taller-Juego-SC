@@ -71,6 +71,10 @@ class IView(ABC):
     def game_won(self, obtain_points: int):
         pass
 
+    @abstractmethod
+    def on_new_wave(self):
+        pass
+
 class IPresenter(ABC):
     @abstractmethod
     def generate_game_configs(self, difficulty: str):
@@ -130,4 +134,8 @@ class IPresenter(ABC):
 
     @abstractmethod
     def get_random_between(self, min, max):
+        pass
+
+    @abstractmethod
+    def on_new_wave(self):
         pass

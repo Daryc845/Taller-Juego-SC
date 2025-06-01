@@ -13,14 +13,16 @@ class GameModel:
         self.terminate = False # TODO: para terminar ejecucion hilo de generacion de enemigos
         self.enemies_counter = 0
         self.lambda_value = 5 # valor de lamda en llegadas/minuto
-        self.max_enemies = 20
+        self.default_enemies = 20
+        self.waves = 3
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
         self.lambda_value = 10 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 2
-        self.max_enemies = 30 if difficulty == HARD_DIFFICULTY else 20 if difficulty == NORMAL_DIFFICULTY else 10
+        self.default_enemies = 30 if difficulty == HARD_DIFFICULTY else 20 if difficulty == NORMAL_DIFFICULTY else 10
+        self.waves = 5 if difficulty == HARD_DIFFICULTY else 3 if difficulty == NORMAL_DIFFICULTY else 2
 
     def reset_to_second_phase(self):
         width, height = self.environment.width, self.environment.height
@@ -46,27 +48,29 @@ class GameModel:
         type = self.__get_chest_type()
         chest_generation_function(type)
 
-    def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None]):
-        # TODO: generar enemigos con dificultad, con lineas de espera
-        at = 0
-        iat = 0
-        enemy_counter = 0
-        while enemy_counter < self.max_enemies:
-            if self.terminate:
-                break
-            if self.in_pause:
-                continue
-            en, type = self.generate_enemy()
-            enemy_generation_function(en, type)
-            enemy_counter += 1
-            ri = self.__get_pseudo_random_number()
-            print(f"Ri: {ri}")
-            iat = - math.log(1 - ri, math.e) / self.lambda_value
-            segs = iat * 60
-            at += iat
-            print(f"Intervalo: {iat}")
-            print(f"Tiempo de espera: {segs}")
-            time.sleep(segs)
+    def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
+                          new_wave_function: Callable[[], None]):
+        for i in range(1, self.waves + 1):
+            #at = 0
+            iat = 0
+            enemy_counter = 0
+            enemies_amount = self.default_enemies
+            enemies_amount += int(self.get_ni_number(i, i*3))
+            while enemy_counter < enemies_amount:
+                if self.terminate:
+                    return
+                if self.in_pause:
+                    continue
+                en, type = self.generate_enemy()
+                enemy_generation_function(en, type)
+                enemy_counter += 1
+                ri = self.__get_pseudo_random_number()
+                iat = - math.log(1 - ri, math.e) / self.lambda_value
+                segs = iat * 60
+                #at += iat
+                time.sleep(segs)
+            new_wave_function()
+            time.sleep(2)
 
     def generate_enemy(self):
         type, life, speed = self.__get_montecarlo_enemy()
