@@ -97,6 +97,8 @@ class GameScene(IView, BaseScene):
 
     def next_phase_load(self):
         self.leaved_weapons.clear()
+        self.torches.clear()
+        self.add_random_torches(5)
         for wp in self.character.weapons:
             wp.direction = self.character.prefab_data.direction
             wp.set_position(self.character.prefab_data.x, self.character.prefab_data.y - 35)

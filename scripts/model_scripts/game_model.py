@@ -9,8 +9,8 @@ class GameModel:
     def __init__(self):
         self.numbers_model = NumbersModel()
         self.environment = EnvironmentData(WIDTH, HEIGHT)
-        self.in_pause = False # TODO: pausa para generar enemigos
-        self.terminate = False # TODO: para terminar ejecucion hilo de generacion de enemigos
+        self.in_pause = False
+        self.terminate = False
         self.enemies_counter = 0
         self.lambda_value = 5 # valor de lamda en llegadas/minuto
         self.default_enemies = 20
