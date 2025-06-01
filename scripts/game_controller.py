@@ -121,6 +121,7 @@ class GameScene(IView, BaseScene):
         self.enemies.clear()
         self.leaved_weapons.clear()
         self.add_random_torches(5)
+        self.chest = None
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -177,6 +178,7 @@ class GameScene(IView, BaseScene):
         self.start_scene.next_scene = None
         self.start_scene.draw()
         self.is_in_game = False
+        self.__reset_all()
 
     def to_second_phase(self):
         self.preparing_second_phase = True
@@ -283,7 +285,7 @@ class GameScene(IView, BaseScene):
             restricetd_directions = self.restrict_movement_character()
             self.character.do_action(keys, restricted_directions=restricetd_directions)
             self.character.update_animation()
-            if self.enemies_counter == 3:
+            if self.enemies_counter == 2:
                 self.presenter.calculate_actions()
                 self.enemies_counter = 0
             self.enemies_counter += 1

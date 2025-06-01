@@ -43,7 +43,6 @@ class GameModel:
                 break
 
     def __generate_chest(self, chest_generation_function: Callable[[str], None]):
-        print("Generando cofre")
         type = self.__get_chest_type()
         chest_generation_function(type)
 
@@ -62,13 +61,19 @@ class GameModel:
                     continue
                 en, type = self.generate_enemy()
                 enemy_generation_function(en, type)
+                enemy_counter += 1
                 ri = self.__get_pseudo_random_number()
                 iat = - math.log(1 - ri, math.e) / self.lambda_value
                 segs = iat * 60
                 #at += iat
                 time.sleep(segs)
-            new_wave_function()
-            time.sleep(2)
+            while len(self.environment.enemies) > 0:
+                if self.terminate:
+                    return
+            else:
+                new_wave_function()
+            if i != self.waves:
+                time.sleep(2)
 
     def generate_enemy(self):
         type, life, speed = self.__get_montecarlo_enemy()
@@ -93,11 +98,11 @@ class GameModel:
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()
         if num <= 0.45:
-            return "type1", 100, 5
+            return "type1", 100, 6
         elif num <= 0.8:
             return "type2", 125, 7
         else:
-            return "type3", 150, 5
+            return "type3", 150, 4
 
     def generate_final_enemy(self):
         life = 300
@@ -135,7 +140,7 @@ class GameModel:
             return action, None
         x_diff = ob_x - x
         y_diff = ob_y - enemy.y
-        move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+        move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
         return "move", move if move else enemy.frame_direction
 
     def do_enemy_type2_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
@@ -149,7 +154,7 @@ class GameModel:
         else:
             x_diff = ob_x - x
             y_diff = ob_y - enemy.y
-            move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+            move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
             return "move", move if move else enemy.frame_direction
 
     def do_enemy_type3_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
@@ -158,7 +163,7 @@ class GameModel:
             return action, None
         x_diff = ob_x - x
         y_diff = ob_y - enemy.y + 40
-        move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+        move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
         return "move", move if move else enemy.frame_direction
 
     def do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int],
@@ -182,7 +187,7 @@ class GameModel:
         else:
             x_diff = ob_x - x_melee
             y_diff = ob_y - enemy.y
-            move = self.__calculate_move_direction(x_diff, y_diff, x_width)
+            move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
             return "move", move if move else enemy.frame_direction
 
     def __two_dimension_random_walk(self, num):
