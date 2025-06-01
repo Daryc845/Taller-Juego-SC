@@ -1,8 +1,9 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
-from scripts.game_configs import WIDTH, HEIGHT
+from scripts.game_configs import WIDTH, HEIGHT, NORMAL_DIFFICULTY, HARD_DIFFICULTY
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
 import math
+import time
 
 class GameModel:
     def __init__(self):
@@ -11,11 +12,15 @@ class GameModel:
         self.in_pause = False # TODO: pausa para generar enemigos
         self.terminate = False # TODO: para terminar ejecucion hilo de generacion de enemigos
         self.enemies_counter = 0
+        self.lambda_value = 5 # valor de lamda en llegadas/minuto
+        self.max_enemies = 20
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
+        self.lambda_value = 10 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 2
+        self.max_enemies = 30 if difficulty == HARD_DIFFICULTY else 20 if difficulty == NORMAL_DIFFICULTY else 10
 
     def reset_to_second_phase(self):
         width, height = self.environment.width, self.environment.height
@@ -41,12 +46,27 @@ class GameModel:
         type = self.__get_chest_type()
         chest_generation_function(type)
 
-    def generate_enemies(self, difficulty: str, 
-                         enemy_generation_function: Callable[[PrefabData, str], None]):
+    def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None]):
         # TODO: generar enemigos con dificultad, con lineas de espera
-        for _ in range(3):
+        at = 0
+        iat = 0
+        enemy_counter = 0
+        while enemy_counter < self.max_enemies:
+            if self.terminate:
+                break
+            if self.in_pause:
+                continue
             en, type = self.generate_enemy()
             enemy_generation_function(en, type)
+            enemy_counter += 1
+            ri = self.__get_pseudo_random_number()
+            print(f"Ri: {ri}")
+            iat = - math.log(1 - ri, math.e) / self.lambda_value
+            segs = iat * 60
+            at += iat
+            print(f"Intervalo: {iat}")
+            print(f"Tiempo de espera: {segs}")
+            time.sleep(segs)
 
     def generate_enemy(self):
         type, life, speed = self.__get_montecarlo_enemy()
@@ -212,7 +232,10 @@ class GameModel:
                     if en.life <= 0:
                         enemies_death.append(en)
                         self.environment.character_points += 10
-                        self.environment.total_character_points += 10
+                        self.environment.total_character_points += 10                
+                        if self.environment.character_points == 20:
+                            self.__generate_chest(chest_generation_function)
+                            self.environment.character_points = 0
                     break
         for en in self.environment.enemies:
             en_shoots = list(filter(lambda x: x.alive, en.attacks))
@@ -227,9 +250,6 @@ class GameModel:
             if en in self.environment.enemies: 
                 self.environment.enemies.remove(en)
             delete_enemy_function(en.id)
-        if self.environment.character_points == 20:
-            self.__generate_chest(chest_generation_function)
-            self.environment.character_points = 0
 
     def __get_pseudo_random_number(self):
         return self.numbers_model.get_next_pseudo_random_number()
@@ -239,9 +259,17 @@ class GameModel:
         return a + (b - a) * ri
     
     def __verify_shoot_damage(self, shoot: AttackData, to: PrefabData, is_enemy: bool)-> bool:
-        direction_to = to.direction
         if is_enemy:
-            direction_to = "left"
+            direction_to = to.frame_direction
+        else:
+            direction_to = to.direction
+        if not to.max_dimensions:
+            if to.type == "type1":
+                to.max_dimensions = {'left': (178, 202), 'right': (178, 202)}
+            elif to.type == "type2":
+                to.max_dimensions = {'left': (141, 160), 'right': (141, 160)}
+            elif to.type == "type3":
+                to.max_dimensions = {'left': (165, 196), 'right': (165, 196)}
         X, Y = to.max_dimensions[direction_to]
         if shoot.direction == "left" or shoot.direction == "right":
             if to.x - (X * 0.5) <= shoot.x and to.x + (X * 0.5) >= shoot.x:

@@ -117,7 +117,7 @@ def poker_test(nums):
     return errors_sum <= chi_inv_value
 
 def generate_intervals(nums):
-    k = int(1 + 3.322 * np.log10(len(nums)))
+    k = int(1 + 3.322 * math.log(len(nums), math.e))
     lims = np.linspace(min(nums), max(nums), k + 1)
     intervs = pd.cut(nums, bins=lims, include_lowest=True)
     table = pd.DataFrame({

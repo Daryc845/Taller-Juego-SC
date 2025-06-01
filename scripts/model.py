@@ -12,7 +12,7 @@ class Model(IModel):
     def generate_game_configs(self, difficulty: str):
         self.game_model.reset_game(difficulty)
         self.presenter.show_character(self.game_model.environment.character)
-        self.game_model.generate_enemies(difficulty, lambda x, y: self.presenter.show_enemy(x, y))
+        self.game_model.generate_enemies(lambda x, y: self.presenter.show_enemy(x, y))
         self.game_model.verify_first_phase(next_phase_function=lambda: self.presenter.to_second_phase())
 
     def start_second_phase(self):
