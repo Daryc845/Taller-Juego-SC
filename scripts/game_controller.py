@@ -52,7 +52,6 @@ class GameScene(IView, BaseScene):
         self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
                                                      (lambda: self.next_phase_load()))
         self.preparing_new_wave = False
-        self.show_timed_message(f"OLEADA {self.current_wave}", 200)
 
     def add_chest_generation_points(self):
         """Añade puntos de generación del cofre en posiciones predefinidas."""
@@ -118,6 +117,7 @@ class GameScene(IView, BaseScene):
         else:
             self.__reset_all()
         self.is_in_game = True
+        self.show_timed_message(f"OLEADA {self.current_wave}", 200)
 
     def __reset_all(self):
         self.torches.clear()
@@ -126,6 +126,12 @@ class GameScene(IView, BaseScene):
         self.leaved_weapons.clear()
         self.add_random_torches(1)
         self.chest = None
+        self.current_wave = 1
+        self.couting_time = False
+        self.enemies_counter = 0
+        self.preparing_second_phase = False
+        self.preparing_time = 0
+        self.preparing_new_wave = False
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -187,13 +193,11 @@ class GameScene(IView, BaseScene):
         self.start_scene.next_scene = None
         self.start_scene.draw()
         self.is_in_game = False
-        self.__reset_all()
 
     def to_second_phase(self):
         self.preparing_second_phase = True
         self.couting_time = True
         self.preparing_time = int(time.time())
-        
 
     def run_game(self):
         while True:
@@ -415,7 +419,6 @@ class GameScene(IView, BaseScene):
             y = (HEIGHT - text.get_height()) // 2
             screen.blit(text, (x, y))
             pygame.display.flip()
-            
             return
         screen.blit(background_image, (0, 0))
         for wp in self.leaved_weapons:

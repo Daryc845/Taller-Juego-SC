@@ -18,6 +18,7 @@ class GameModel:
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
+        self.terminate = False
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
         self.lambda_value = 6 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 4
@@ -47,7 +48,7 @@ class GameModel:
         chest_generation_function(type)
 
     def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
-                          new_wave_function: Callable[[], None]):
+                          new_wave_function: Callable[[int], None]):
         for i in range(1, self.waves + 1):
             time.sleep(3)
             #at = 0
@@ -267,6 +268,7 @@ class GameModel:
                     shoot.alive = False
                     if self.environment.character.life <= 0:
                         character_death_function()
+                        self.terminate = True
                 elif shoot.type == "melee":
                     shoot.alive = False
         for en in enemies_death:

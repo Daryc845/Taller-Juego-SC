@@ -72,7 +72,7 @@ class IView(ABC):
         pass
 
     @abstractmethod
-    def on_new_wave(self):
+    def on_new_wave(self, wave_number):
         pass
 
 class IPresenter(ABC):
@@ -137,5 +137,5 @@ class IPresenter(ABC):
         pass
 
     @abstractmethod
-    def on_new_wave(self):
+    def on_new_wave(self, wave_number):
         pass
