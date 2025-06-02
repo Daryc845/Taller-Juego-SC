@@ -1,20 +1,24 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
-from scripts.game_configs import WIDTH, HEIGHT, NORMAL_DIFFICULTY, HARD_DIFFICULTY
 from scripts.model_scripts.numbers_model import NumbersModel
 from typing import Callable
 import math
 import time
 
+NORMAL_DIFFICULTY = "Normal"
+HARD_DIFFICULTY = "Difícil"
+
 class GameModel:
-    def __init__(self):
+    def __init__(self, width: int, height: int):
         self.numbers_model = NumbersModel()
-        self.environment = EnvironmentData(WIDTH, HEIGHT)
+        self.environment = EnvironmentData(width, height)
         self.in_pause = False
         self.terminate = False
         self.enemies_counter = 0
         self.lambda_value = 5 # valor de lamda en llegadas/minuto
         self.default_enemies = 5
         self.waves = 3
+        self.waves_waiting_time = 3
+        self.waiting_time_in_last_wave = 2
 
     def reset_game(self, difficulty: str):
         self.terminate = False
@@ -49,7 +53,7 @@ class GameModel:
     def generate_waves_and_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
                           new_wave_function: Callable[[int], None]):
         for i in range(1, self.waves + 1):
-            time.sleep(3)
+            time.sleep(self.waves_waiting_time)
             enemies_amount = self.default_enemies
             enemies_amount += int(self.get_ni_number(i, i*3))
             self.__waiting_lines_enemies_generation(enemy_generation_function, enemies_amount)
@@ -61,7 +65,7 @@ class GameModel:
             else:
                 new_wave_function(i + 1)
             if i != self.waves:
-                time.sleep(2)
+                time.sleep(self.waiting_time_in_last_wave)
 
     def __waiting_lines_enemies_generation(self, enemy_generation_function: Callable[[PrefabData, str], None], enemies_amount: int):
         #at = 0
@@ -93,13 +97,13 @@ class GameModel:
     def __get_montecarlo_enemy_position(self):
         num1 = self.__get_pseudo_random_number()
         if num1 <= 0.25:
-            return 0, int(self.get_ni_number(0, HEIGHT))
+            return 0, int(self.get_ni_number(0, self.environment.height))
         elif num1 <= 0.5:
-            return WIDTH, int(self.get_ni_number(0, HEIGHT))
+            return self.environment.width, int(self.get_ni_number(0, self.environment.height))
         elif num1 <= 0.75:
-            return int(self.get_ni_number(0, WIDTH)), HEIGHT
+            return int(self.get_ni_number(0, self.environment.width)), self.environment.height
         else:
-            return int(self.get_ni_number(0, WIDTH)), 0
+            return int(self.get_ni_number(0, self.environment.width)), 0
 
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()

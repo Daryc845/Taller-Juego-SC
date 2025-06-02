@@ -1,10 +1,11 @@
 from scripts.intefaces import IModel, IPresenter
 from scripts.model_scripts import GameModel
+from scripts.game_configs import WIDTH, HEIGHT
 
 class Model(IModel):
     def __init__(self):
         self.presenter = None
-        self.game_model = GameModel()
+        self.game_model = GameModel(WIDTH, HEIGHT)
 
     def set_presenter(self, presenter: IPresenter):
         self.presenter = presenter
