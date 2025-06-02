@@ -52,6 +52,7 @@ class GameScene(IView, BaseScene):
         self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
                                                      (lambda: self.next_phase_load()))
         self.preparing_new_wave = False
+        self.can_show_chest = False
 
     def add_chest_generation_points(self):
         """Añade puntos de generación del cofre en posiciones predefinidas."""
@@ -132,6 +133,8 @@ class GameScene(IView, BaseScene):
         self.preparing_second_phase = False
         self.preparing_time = 0
         self.preparing_new_wave = False
+        self.help_controls_counter = 1000
+        self.can_show_chest = False
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -156,13 +159,19 @@ class GameScene(IView, BaseScene):
         selected_point = self.chest_generation_points[generation_point_index]
         self.chest.show_chest(*selected_point)"""
         self.generate_chest(type)
+        self.can_show_chest = True
         
     def generate_chest(self, type: str):
         """Genera un cofre en una posición aleatoria de los puntos de generación predefinidos"""
         generation_point_index = int(self.presenter.get_random_between(0, len(self.chest_generation_points) - 1))
         selected_point = self.chest_generation_points[generation_point_index]
-        chest_data = PrefabData(*selected_point, direction="down", life=1)
-        self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message, type, self.add_leaved_weapon)
+        if self.chest is None:
+            chest_data = PrefabData(*selected_point, direction="down", life=1)
+            self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message, type, self.add_leaved_weapon)
+        else:
+            self.chest.prefab_data.x, self.chest.prefab_data.y = selected_point
+            self.chest.prefab_data.direction = "down"
+            self.chest.reset(type)
         
     def add_torch(self, x: int, y: int):
         """Añade una antorcha en la posición especificada"""
@@ -428,7 +437,7 @@ class GameScene(IView, BaseScene):
             torch.draw(screen)
         self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
         
-        if self.chest:
+        if self.chest and self.can_show_chest:
             if self.character.prefab_data.y > self.chest.prefab_data.y * 0.99:
                 self.chest.draw(screen, self.character)
                 self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)

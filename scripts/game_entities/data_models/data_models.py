@@ -18,7 +18,16 @@ class PrefabData:
         self.direction = direction
         self.life = life
         self.max_life = life
-        self.max_dimensions = {}
+        if type == "type1":
+            self.max_dimensions = {'left': (178, 202), 'right': (178, 202)}
+        elif type == "type2":
+            self.max_dimensions = {'left': (141, 160), 'right': (141, 160)}
+        elif type == "type3":
+            self.max_dimensions = {'left': (165, 196), 'right': (165, 196)}
+        elif type == "final":
+            self.max_dimensions = {'left': (184, 207), 'right': (184, 207)}
+        else:
+            self.max_dimensions = {'up': (40, 80), 'down': (40, 94), 'left': (112, 72), 'right': (112, 72), 'up_beaten': (40, 80), 'down_beaten': (40, 94), 'left_beaten': (112, 72), 'right_beaten': (112, 72)}
         self.attacks: list[AttackData] = []
         self.frame_direction = frame_direction
         self.type = type # tipos: type1, type2, type3, final, (None en caso del jugador)

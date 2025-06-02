@@ -28,6 +28,20 @@ class Chest(StaticObject):
         self.blink_visible = True
         self.type = type
         self.add_leaved_weapon = add_leaved_weapon
+        self.munition = Munition(PrefabData(self.prefab_data.x, self.prefab_data.y - 35, direction="Down", life=1))
+        self.hearth = Hearth(PrefabData(self.prefab_data.x, self.prefab_data.y - 35, direction="Down", life=1))
+
+    def reset(self, type: str):
+        self.valid_open = False
+        self.animating = False
+        self.is_open = False
+        self.open_delay = 0
+        self.last_reward = None
+        self.reward = None
+        self.blink_counter = 0
+        self.blink_interval = 10
+        self.blink_visible = True
+        self.type = type
     
     def update(self, character):
         """
@@ -62,10 +76,11 @@ class Chest(StaticObject):
         self.reward_type = self.type
         
         if self.reward_type == 'munition':
-            print("VAMOOOOOOOOOOO")
-            self.reward = Munition(PrefabData(self.prefab_data.x, self.prefab_data.y - 35, direction="Down", life=1))
+            self.munition.prefab_data.x, self.munition.prefab_data.y = self.prefab_data.x, self.prefab_data.y - 35
+            self.reward = self.munition
         elif self.reward_type == 'health':
-            self.reward = Hearth(PrefabData(self.prefab_data.x, self.prefab_data.y - 35, direction="Down", life=1))
+            self.hearth.prefab_data.x, self.hearth.prefab_data.y = self.prefab_data.x, self.prefab_data.y - 35
+            self.reward = self.hearth
         #METODO MONTECARLO PARA SELECCIONAR EL ARMA
         else:
             self.select_weapon()

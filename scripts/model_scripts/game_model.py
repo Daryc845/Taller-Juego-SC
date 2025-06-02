@@ -17,7 +17,6 @@ class GameModel:
         self.waves = 3
 
     def reset_game(self, difficulty: str):
-        print(f"Dificultad seleccionada: {difficulty}")
         self.terminate = False
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
@@ -47,28 +46,15 @@ class GameModel:
         type = self.__get_chest_type()
         chest_generation_function(type)
 
-    def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
+    def generate_waves_and_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
                           new_wave_function: Callable[[int], None]):
         for i in range(1, self.waves + 1):
             time.sleep(3)
-            #at = 0
-            iat = 0
-            enemy_counter = 0
             enemies_amount = self.default_enemies
             enemies_amount += int(self.get_ni_number(i, i*3))
-            while enemy_counter < enemies_amount:
-                if self.terminate:
-                    return
-                if self.in_pause:
-                    continue
-                en, type = self.generate_enemy()
-                enemy_generation_function(en, type)
-                enemy_counter += 1
-                ri = self.__get_pseudo_random_number()
-                iat = - math.log(1 - ri, math.e) / self.lambda_value
-                segs = iat * 60
-                #at += iat
-                time.sleep(segs)
+            self.__waiting_lines_enemies_generation(enemy_generation_function, enemies_amount)
+            if self.terminate:
+                return
             while len(self.environment.enemies) > 0:
                 if self.terminate:
                     return
@@ -76,6 +62,24 @@ class GameModel:
                 new_wave_function(i + 1)
             if i != self.waves:
                 time.sleep(2)
+
+    def __waiting_lines_enemies_generation(self, enemy_generation_function: Callable[[PrefabData, str], None], enemies_amount: int):
+        #at = 0
+        iat = 0
+        enemy_counter = 0
+        while enemy_counter < enemies_amount:
+            if self.terminate:
+                return
+            if self.in_pause:
+                continue
+            en, type = self.generate_enemy()
+            enemy_generation_function(en, type)
+            enemy_counter += 1
+            ri = self.__get_pseudo_random_number()
+            iat = - math.log(1 - ri, math.e) / self.lambda_value
+            segs = iat * 60 # minutos a segundos
+            #at += iat
+            time.sleep(segs)
 
     def generate_enemy(self):
         type, life, speed = self.__get_montecarlo_enemy()
@@ -122,13 +126,13 @@ class GameModel:
         for en in self.environment.enemies:
             type = en.type
             if type == "type1":
-                action, type_action = self.do_enemy_type1_action_policy(en, ob_sp)
+                action, type_action = self.__do_enemy_type1_action_policy(en, ob_sp)
             elif type == "type2":
-                action, type_action = self.do_enemy_type2_action_policy(en, ob_sp)
+                action, type_action = self.__do_enemy_type2_action_policy(en, ob_sp)
             elif type == "type3":
-                action, type_action = self.do_enemy_type3_action_policy(en, ob_sp)
+                action, type_action = self.__do_enemy_type3_action_policy(en, ob_sp)
             elif type == "final":
-                action, type_action = self.do_final_enemy_action_policy(en, ob_sp, enemy_generation_function)
+                action, type_action = self.__do_final_enemy_action_policy(en, ob_sp, enemy_generation_function)
                 if action is None:
                     continue
             if action == "attack":
@@ -136,7 +140,7 @@ class GameModel:
             else:
                 move_function(type_action, en.id)
 
-    def do_enemy_type1_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+    def __do_enemy_type1_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         action, ob_x, ob_y, x, x_width = self.__calculate_melee_attack(enemy, observation_space)
         if action == "attack":
             return action, None
@@ -145,7 +149,7 @@ class GameModel:
         move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
         return "move", move if move else enemy.frame_direction
 
-    def do_enemy_type2_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+    def __do_enemy_type2_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         action, ob_x, ob_y, x, x_width = self.__calculate_melee_attack(enemy, observation_space)
         if action == "attack":
             return action, None
@@ -159,7 +163,7 @@ class GameModel:
             move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
             return "move", move if move else enemy.frame_direction
 
-    def do_enemy_type3_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
+    def __do_enemy_type3_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         action, ob_x, ob_y, x, x_width = self.__calculate_shoot_attack(enemy, observation_space)
         if action == "attack":
             return action, None
@@ -168,7 +172,7 @@ class GameModel:
         move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
         return "move", move if move else enemy.frame_direction
 
-    def do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int],
+    def __do_final_enemy_action_policy(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int],
                                      enemy_generation_function: Callable[[PrefabData, str], None]):
         action, ob_x, ob_y, x_melee, x_width = self.__calculate_melee_attack(enemy, observation_space)
         if action == "attack":
@@ -288,13 +292,6 @@ class GameModel:
             direction_to = to.frame_direction
         else:
             direction_to = to.direction
-        if not to.max_dimensions:
-            if to.type == "type1":
-                to.max_dimensions = {'left': (178, 202), 'right': (178, 202)}
-            elif to.type == "type2":
-                to.max_dimensions = {'left': (141, 160), 'right': (141, 160)}
-            elif to.type == "type3":
-                to.max_dimensions = {'left': (165, 196), 'right': (165, 196)}
         X, Y = to.max_dimensions[direction_to]
         if shoot.direction == "left" or shoot.direction == "right":
             if to.x - (X * 0.5) <= shoot.x and to.x + (X * 0.5) >= shoot.x:

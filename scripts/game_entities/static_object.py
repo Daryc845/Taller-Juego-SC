@@ -58,7 +58,6 @@ class StaticObject(ABC):
             
         if self.current_frame < len(self.animations["default"]) - 1:
             self.current_frame += 1
-            print("CAMBIOOOOO")
         else:
             self.on_animation_end()
     
