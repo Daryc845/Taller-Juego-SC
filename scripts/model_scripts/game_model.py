@@ -13,16 +13,16 @@ class GameModel:
         self.terminate = False
         self.enemies_counter = 0
         self.lambda_value = 5 # valor de lamda en llegadas/minuto
-        self.default_enemies = 20
+        self.default_enemies = 5
         self.waves = 3
 
     def reset_game(self, difficulty: str):
         print(f"Dificultad seleccionada: {difficulty}")
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
-        self.lambda_value = 10 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 2
-        self.default_enemies = 30 if difficulty == HARD_DIFFICULTY else 20 if difficulty == NORMAL_DIFFICULTY else 10
-        self.waves = 5 if difficulty == HARD_DIFFICULTY else 3 if difficulty == NORMAL_DIFFICULTY else 2
+        self.lambda_value = 6 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 4
+        self.default_enemies = 7 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 3
+        self.waves = 9 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 2
 
     def reset_to_second_phase(self):
         width, height = self.environment.width, self.environment.height
@@ -49,6 +49,7 @@ class GameModel:
     def generate_enemies(self, enemy_generation_function: Callable[[PrefabData, str], None],
                           new_wave_function: Callable[[], None]):
         for i in range(1, self.waves + 1):
+            time.sleep(3)
             #at = 0
             iat = 0
             enemy_counter = 0
@@ -71,7 +72,7 @@ class GameModel:
                 if self.terminate:
                     return
             else:
-                new_wave_function()
+                new_wave_function(i + 1)
             if i != self.waves:
                 time.sleep(2)
 
@@ -98,15 +99,15 @@ class GameModel:
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()
         if num <= 0.45:
-            return "type1", 100, 6
+            return "type1", 150, 7
         elif num <= 0.8:
-            return "type2", 125, 7
+            return "type2", 125, 9
         else:
-            return "type3", 150, 4
+            return "type3", 100, 4
 
     def generate_final_enemy(self):
-        life = 300
-        speed = 7
+        life = 2000
+        speed = 6
         id = 0
         x, y = self.__get_montecarlo_enemy_position()
         enemy = PrefabData(x, y, 'right', life, type="final", speed=speed, id=id)
@@ -174,7 +175,7 @@ class GameModel:
         action, ob_x, ob_y, _, _ = self.__calculate_shoot_attack(enemy, observation_space)
         if action == "attack":
             return action, "shoot"
-        if enemy.genration_enemies_counter == 40:
+        if enemy.genration_enemies_counter == 200:
             en, type = self.generate_enemy()
             enemy_generation_function(en, type)
             enemy.genration_enemies_counter = 0

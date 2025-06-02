@@ -1,6 +1,6 @@
 import pygame
 from scripts.game_scenes.base_scene import BaseScene
-from scripts.game_configs import WIDTH, HEIGHT, screen, background_image
+from scripts.game_configs import WIDTH, HEIGHT, screen, initial_background_image
 import math
 import threading
 import time
@@ -24,11 +24,23 @@ class LoadingSceneBase(BaseScene):
         self.rotation_angle = (self.rotation_angle + 5) % 360
     
     def draw(self, mid_text:str = ""):
-        screen.blit(background_image, (0, 0))
-        loading_text = self.font.render("Cargando...", True, self.WHITE)
+        screen.blit(initial_background_image, (0, 0))
+
+        # Texto principal
+        loading_text_shadow = self.font.render("Cargando...", True, (0, 0, 0))
+        screen.blit(loading_text_shadow, (WIDTH//2 - loading_text_shadow.get_width()//2 + 2, HEIGHT//2 - 98))
+        
+        loading_text = self.font.render("Cargando...", True, (80, 255, 255))
         screen.blit(loading_text, (WIDTH//2 - loading_text.get_width()//2, HEIGHT//2 - 100))
-        diff_text = self.small_font.render(mid_text, True, self.WHITE)
-        screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, HEIGHT//2 + 100))
+
+        # Texto secundario (dificultad)
+        if mid_text:
+            big_font = pygame.font.SysFont("Arial", 32, bold=True)
+            diff_text_shadow = big_font.render(mid_text, True, (0, 0, 0))
+            screen.blit(diff_text_shadow, (WIDTH//2 - diff_text_shadow.get_width()//2 + 2, HEIGHT//2 + 62))
+            diff_text = big_font.render(mid_text, True, (255, 220, 40)) 
+            screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, HEIGHT//2 + 60))
+
         for i in range(self.num_dots):
             angle = math.radians((i * (360 / self.num_dots) + self.rotation_angle) % 360)
             x = self.circle_center[0] + math.cos(angle) * self.circle_radius
@@ -36,6 +48,7 @@ class LoadingSceneBase(BaseScene):
             angle_diff = (i * (360 / self.num_dots)) % 360
             dot_size = self.dot_radius * (0.5 + 0.5 * (1 - angle_diff / 180) if angle_diff <= 180 else 0.5 * angle_diff / 180)
             pygame.draw.circle(screen, self.LIGHT_BLUE if i < 3 else self.BLUE, (int(x), int(y)), int(dot_size))
+        
         pygame.display.flip()
 
 class LoadingScene(LoadingSceneBase):
@@ -63,7 +76,7 @@ class NextPhaseLoadingScene(LoadingSceneBase):
         self.func = load_function
 
     def draw(self):
-        super().draw(mid_text="Preparando la fase 2")
+        super().draw(mid_text="Ingresando a la audiencia...")
 
     def start_thread(self):
         threading.Thread(target=self.thread_function, daemon=True).start()

@@ -1,5 +1,5 @@
 from scripts.game_entities.prefab import Prefab
-from scripts.game_configs import WEAPON_RAYGUN_FOLDER
+from scripts.game_configs import ENEMY_3_FOLDER
 from scripts.game_entities.bullet import Bullet
 from scripts.game_entities.data_models import PrefabData, AttackData
 from scripts.game_persistence import load_image, load_animations
@@ -103,7 +103,7 @@ class MeleeEnemy(Enemy, ABC):
         if self.attacking and self.current_frame == middle_animation:
             x = self.prefab_data.x + (self.width // 2) if "right" in self.prefab_data.frame_direction else self.prefab_data.x - (self.width // 2)
             data = AttackData(self.attack_count_id, x, self.prefab_data.y, 
-                              5, self.prefab_data.direction, "melee")
+                              15, self.prefab_data.direction, "melee")
             self.prefab_data.attacks.append(data)
             self.attack_count_id += 1
 
@@ -114,8 +114,9 @@ class MeleeEnemy(Enemy, ABC):
 class ShooterEnemy(Enemy, ABC):
     def __init__(self, prefab_data: PrefabData, directions):
         super().__init__(prefab_data, directions)
-        self.attack_delay_counter = 50
-        bullet_path = os.path.join(WEAPON_RAYGUN_FOLDER, "bullet.png")
+        self.attack_delay_counter = 0
+        self.attack_cooldown = 30
+        bullet_path = os.path.join(ENEMY_3_FOLDER, "ray_shadow.png")
         self.bullet_image = load_image(bullet_path)
         self.bullets_fired : list[Bullet] = []
 
@@ -125,13 +126,25 @@ class ShooterEnemy(Enemy, ABC):
 
     def update_animation(self):
         super().update_animation()
-        if self.attacking and self.current_frame == 1:
-            data = AttackData(self.attack_count_id, self.prefab_data.x + (40 if "right" in self.prefab_data.frame_direction else -40), 
-                            self.prefab_data.y - 40, self.get_shoot_damage(), self.prefab_data.direction, self.get_shoot_type())
+        if self.attack_delay_counter > 0:
+            self.attack_delay_counter -= 1
+        # Calcula el frame en el 73% de la animación de ataque
+        attack_frames = len(self.attack_animations[self.prefab_data.frame_direction])
+        late_frame = int(attack_frames * 0.73)
+        if self.attacking and self.current_frame == late_frame and self.attack_delay_counter == 0:
+            data = AttackData(
+                self.attack_count_id,
+                self.prefab_data.x + (40 if "right" in self.prefab_data.frame_direction else -40),
+                self.prefab_data.y - 40,
+                self.get_shoot_damage(),
+                self.prefab_data.direction,
+                self.get_shoot_type()
+            )
             self.prefab_data.attacks.append(data)
             self.attack_count_id += 1
             bullet = Bullet(data, self.bullet_image)
             self.bullets_fired.append(bullet)
+            self.attack_delay_counter = self.attack_cooldown
 
     def draw(self, surface, in_pause=False):
         super().draw(surface)

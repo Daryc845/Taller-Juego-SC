@@ -12,7 +12,7 @@ class Chest(StaticObject):
     Solo se anima cuando el personaje está cerca.
     """
     
-    def __init__(self, prefab_data: PrefabData, show_timed_message, draw_character_message, type: str):
+    def __init__(self, prefab_data: PrefabData, show_timed_message, draw_character_message, type: str, add_leaved_weapon):
         animation_path = os.path.join("resources", "objects", "Chest", "Open-Chest-Animation")
         super().__init__(prefab_data, animation_path, has_eternal_animation=False)
         self.valid_open = False
@@ -27,6 +27,7 @@ class Chest(StaticObject):
         self.blink_interval = 10
         self.blink_visible = True
         self.type = type
+        self.add_leaved_weapon = add_leaved_weapon
     
     def update(self, character):
         """
@@ -122,7 +123,11 @@ class Chest(StaticObject):
             'weapon': f"¡Has obtenido una recompensa: Nueva Arma(" + self.reward.get_name() + ")!"
         }
         
-        reward_actions[type]()
+        if type == "weapon":
+            weapon = reward_actions[type]()
+            self.add_leaved_weapon(weapon)
+        else:
+            reward_actions[type]()
         self.last_reward = type
         self.show_timed_message(reward_messages[type])
     

@@ -53,5 +53,5 @@ class Presenter(IPresenter):
     def get_random_between(self, min, max):
         return self.model.get_random_between(min, max)
 
-    def on_new_wave(self):
-        self.view.on_new_wave()
+    def on_new_wave(self, wave_number):
+        self.view.on_new_wave(wave_number)

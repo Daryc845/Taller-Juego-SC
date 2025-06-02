@@ -43,9 +43,7 @@ class Character(Prefab):
     def reset_character(self):
         self.weapon_index = 0
         self.weapons : list[Weapon] = [Submachine(self.prefab_data.x, self.prefab_data.y - 35), 
-            Rifle(self.prefab_data.x, self.prefab_data.y - 35), 
-            Shotgun(self.prefab_data.x, self.prefab_data.y - 35), 
-            Raygun(self.prefab_data.x, self.prefab_data.y - 35)]
+            Rifle(self.prefab_data.x, self.prefab_data.y - 35)]
         self.weapons[self.weapon_index].x = self.prefab_data.x
         self.weapons[self.weapon_index].y = self.prefab_data.y - 35
         self.bullets_count_id = 0
@@ -78,7 +76,9 @@ class Character(Prefab):
         Raises:
             ValueError: Si ya hay 4 armas en el inventario.
         """
+        last_weapon = self.weapons[self.weapon_index]
         self.weapons[self.weapon_index] = weapon.set_position(self.prefab_data.x, self.prefab_data.y - 35)
+        return last_weapon
         
     def heal(self, amount):
         """
@@ -188,7 +188,7 @@ class Character(Prefab):
         self.draw_weapons_bullets(surface, in_pause=in_pause)
         self.evaluate_position_and_draw(surface, draw_character_message)
         
-        title_surface = self.font.render("ARMAS", True, (255, 255, 255))
+        title_surface = self.font.render("ARMAS(Maximo 4)", True, (255, 255, 255))
         surface.blit(title_surface, (10, 40 - 25))
         for i, weapon in enumerate(self.weapons):
             self.draw_munition(surface, weapon, 10, 50 + i * 45, i == self.weapon_index)

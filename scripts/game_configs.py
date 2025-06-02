@@ -10,9 +10,9 @@ FPS = 60
 pygame.display.set_caption("Legend of the Shadow Slayer")
 clock = pygame.time.Clock()
 
-EASY_DIFFICULTY = "fácil"
-NORMAL_DIFFICULTY = "normal"
-HARD_DIFFICULTY = "difícil"
+EASY_DIFFICULTY = "Fácil"
+NORMAL_DIFFICULTY = "Normal"
+HARD_DIFFICULTY = "Difícil"
 
 # --- Parametros de animación ---
 RESOURCES_FOLDER = "resources" # Carpeta donde se encuentran los recursos graficos
@@ -24,8 +24,11 @@ WEAPON_RAYGUN_FOLDER = os.path.join(WEAPONS_FOLDER, "weapon_4-raygun") # Carpeta
 ENEMY_1_FOLDER = os.path.join(RESOURCES_FOLDER, "enemies", "enemy_type_1") # Carpeta donde se encuentran los recursos graficos del enemigo 1
 ENEMY_2_FOLDER = os.path.join(RESOURCES_FOLDER, "enemies", "enemy_type_2") # Carpeta donde se encuentran los recursos graficos del enemigo 2
 ENEMY_3_FOLDER = os.path.join(RESOURCES_FOLDER, "enemies", "enemy_type_3") # Carpeta donde se encuentran los recursos graficos del enemigo 3
+ENEMY_4_FOLDER = os.path.join(RESOURCES_FOLDER, "enemies", "enemy_type_4") # Carpeta donde se encuentran los recursos graficos del enemigo 4
 CHARACTER_FOLDER = os.path.join(RESOURCES_FOLDER, "character - Chester") # Carpeta donde se encuentran los recursos graficos del personaje Chester
 FRAME_CHANGE_EVERY = 1.117    # Cambia los frames cada 1.025 segundos
 SCALE_FACTOR = 0.2  # Ajusta el tamaño de las imágenes a un 20% de su tamaño original (USAR PARA AJUSTAR EL TAMAÑO DE LAS IMÁGENES)
 background_image = pygame.image.load(os.path.join(RESOURCES_FOLDER, "backgrounds", "bg.png"))
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))  # Ajustar al tamaño de la pantalla
+initial_background_image = pygame.image.load(os.path.join(RESOURCES_FOLDER, "backgrounds", "presentation_bg.png"))
+initial_background_image = pygame.transform.scale(initial_background_image, (WIDTH, HEIGHT))  # Ajustar al tamaño de la pantalla

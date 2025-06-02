@@ -1,13 +1,10 @@
 import pygame
 from scripts.game_scenes.base_scene import BaseScene
 from scripts.game_scenes.loading_scene import LoadingScene
-from scripts.game_configs import WIDTH, HEIGHT, screen, background_image, HARD_DIFFICULTY, NORMAL_DIFFICULTY, EASY_DIFFICULTY
+from scripts.game_configs import WIDTH, HEIGHT, screen, initial_background_image, HARD_DIFFICULTY, NORMAL_DIFFICULTY, EASY_DIFFICULTY
 import sys
 
 class StartScene(BaseScene):
-    """
-    Escena de inicio donde se selecciona la dificultad y se inicia el juego
-    """
     def __init__(self, load_function):
         super().__init__()
         self.load_function = load_function
@@ -17,26 +14,33 @@ class StartScene(BaseScene):
         self.game_won = False
         self.final_points = 0
         pygame.font.init()
-        self.title_font = pygame.font.SysFont("Arial", 48, bold=True)
-        self.button_font = pygame.font.SysFont("Arial", 36)
-        self.text_font = pygame.font.SysFont("Arial", 24)
+        # Fuentes modernas y legibles sobre fondo oscuro
+        self.title_font = pygame.font.SysFont("Segoe UI Black", 60, bold=True)
+        self.button_font = pygame.font.SysFont("Segoe UI", 34, bold=True)
+        self.text_font = pygame.font.SysFont("Segoe UI", 26)
+        self.diff_font = pygame.font.SysFont("Segoe UI", 22, bold=True)
+        # Colores adaptados a fondo oscuro
         self.WHITE = (255, 255, 255)
-        self.BLACK = (0, 0, 0)
-        self.GRAY = (150, 150, 150)
-        self.RED = (255, 0, 0)
-        self.GREEN = (0, 255, 0)
-        self.BLUE = (0, 0, 255)
-        self.YELLOW = (255, 255, 0)
-        self.start_button = pygame.Rect(WIDTH//2 - 100, HEIGHT - 200, 200, 50)
-        btn_width = 150
-        btn_height = 40
-        btn_margin = 30
+        self.LIGHT = (220, 220, 220)
+        self.LIGHTER = (240, 240, 240)
+        self.DARK = (30, 30, 30)
+        self.BLUE = (70, 130, 255)
+        self.LIGHT_BLUE = (120, 200, 255)
+        self.GREEN = (60, 200, 120)
+        self.YELLOW = (255, 210, 60)
+        self.RED = (220, 80, 80)
+        self.TRANSPARENT = (0, 0, 0, 120)
+        # Botones
+        self.start_button = pygame.Rect(WIDTH//2 - 120, HEIGHT - 180, 240, 60)
+        btn_width = 170
+        btn_height = 60
+        btn_margin = 40
         total_width = (btn_width * 3) + (btn_margin * 2)
         start_x = (WIDTH - total_width) // 2
         self.easy_button = pygame.Rect(start_x, HEIGHT//2, btn_width, btn_height)
         self.normal_button = pygame.Rect(start_x + btn_width + btn_margin, HEIGHT//2, btn_width, btn_height)
         self.hard_button = pygame.Rect(start_x + (btn_width + btn_margin) * 2, HEIGHT//2, btn_width, btn_height)
-    
+
     def handle_events(self, other_actions=None):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -54,38 +58,78 @@ class StartScene(BaseScene):
                     self.difficulty = HARD_DIFFICULTY
                 elif self.start_button.collidepoint(mouse_pos):
                     self.next_scene = LoadingScene(self.difficulty, self.load_function)
-    
+
     def update(self):
         pass
-    
+
+    def draw_button(self, rect, color, text, hover=False, solid=False, text_color=None):
+        button_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        if solid:
+            fondo_color = color  
+            alpha = 255
+        else:
+            fondo_color = (*color, 200 if hover else 140)
+            alpha = 200 if hover else 140
+
+        # Fondo y borde
+        if solid and hover:
+            fondo_color = (0, 0, 0)
+            border_color = self.BLUE
+            txt_color = self.BLUE if text_color is None else text_color
+        elif solid:
+            border_color = self.LIGHT
+            txt_color = self.LIGHTER if text_color is None else text_color
+        else:
+            border_color = self.LIGHTER if hover else self.LIGHT
+            txt_color = self.LIGHTER if hover else self.LIGHT if text_color is None else text_color
+
+        # Dibuja el fondo
+        pygame.draw.rect(button_surface, fondo_color, button_surface.get_rect(), border_radius=18)
+        pygame.draw.rect(button_surface, border_color, button_surface.get_rect(), 4, border_radius=18)
+        txt = self.button_font.render(text, True, txt_color)
+        tx = (rect.width - txt.get_width()) // 2
+        ty = (rect.height - txt.get_height()) // 2
+        button_surface.blit(txt, (tx, ty))
+        screen.blit(button_surface, (rect.x, rect.y))
+
+
     def draw(self):
-        screen.blit(background_image, (0, 0))
-        title_text = self.title_font.render("Legend of the Shadow Slayer", True, self.WHITE)
-        screen.blit(title_text, (WIDTH//2 - title_text.get_width()//2, 100))
+        # Dibuja la imagen de fondo original
+        screen.blit(initial_background_image, (0, 0))
+
+        # Mensajes de estado
         if self.game_over:
-            game_over_text = self.text_font.render("Has perdido", True, (255, 0, 0))
+            LIGHT_RED = (255, 120, 120)
+            bold_font = pygame.font.SysFont("Segoe UI", 26, bold=True)
+            game_over_text = bold_font.render("¡Has perdido :C! Tu mundo se ha sumido en tinieblas", True, LIGHT_RED)
             screen.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//2 - 100))
         elif self.game_won:
-            game_won_text = self.text_font.render("Has ganado", True, (0, 255, 0))
+            LIGHT_GREEN = (180, 255, 180)
+            bold_font = pygame.font.SysFont("Segoe UI", 26, bold=True)
+            game_won_text = bold_font.render("¡Has ganado! Muy bien hecho :DD", True, LIGHT_GREEN)
             screen.blit(game_won_text, (WIDTH//2 - game_won_text.get_width()//2, HEIGHT//2 - 150))
-            final_points_text = self.text_font.render(f"Puntos obtenidos: {self.final_points}", True, (0, 255, 0))
+            final_points_text = bold_font.render(f"Puntuación: {self.final_points}", True, LIGHT_GREEN)
             screen.blit(final_points_text, (WIDTH//2 - final_points_text.get_width()//2, HEIGHT//2 - 100))
-        diff_text = self.text_font.render("Selecciona la dificultad:", True, self.WHITE)
-        screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, HEIGHT//2 - 50))
-        pygame.draw.rect(screen, self.GREEN if self.difficulty == "fácil" else self.GRAY, self.easy_button)
-        pygame.draw.rect(screen, self.YELLOW if self.difficulty == "normal" else self.GRAY, self.normal_button)
-        pygame.draw.rect(screen, self.RED if self.difficulty == "difícil" else self.GRAY, self.hard_button)
-        easy_text = self.button_font.render("Fácil", True, self.BLACK)
-        normal_text = self.button_font.render("Normal", True, self.BLACK)
-        hard_text = self.button_font.render("Difícil", True, self.BLACK)
-        screen.blit(easy_text, (self.easy_button.x + (self.easy_button.width - easy_text.get_width())//2, 
-                             self.easy_button.y + (self.easy_button.height - easy_text.get_height())//2))
-        screen.blit(normal_text, (self.normal_button.x + (self.normal_button.width - normal_text.get_width())//2, 
-                             self.normal_button.y + (self.normal_button.height - normal_text.get_height())//2))
-        screen.blit(hard_text, (self.hard_button.x + (self.hard_button.width - hard_text.get_width())//2, 
-                             self.hard_button.y + (self.hard_button.height - hard_text.get_height())//2))
-        pygame.draw.rect(screen, self.BLUE, self.start_button)
-        start_text = self.button_font.render("INICIAR", True, self.WHITE)
-        screen.blit(start_text, (self.start_button.x + (self.start_button.width - start_text.get_width())//2, 
-                             self.start_button.y + (self.start_button.height - start_text.get_height())//2))
+        # Texto de dificultad 
+        diff_text = self.diff_font.render("Selecciona la dificultad:", True, self.LIGHTER)
+        diff_y = HEIGHT//2 - 30 
+        screen.blit(diff_text, (WIDTH//2 - diff_text.get_width()//2, diff_y))
+        # Botones de dificultad con efecto hover
+        mouse_pos = pygame.mouse.get_pos()
+        easy_hover = self.easy_button.collidepoint(mouse_pos)
+        normal_hover = self.normal_button.collidepoint(mouse_pos)
+        hard_hover = self.hard_button.collidepoint(mouse_pos)
+        
+        btn_y = HEIGHT//2 + 30
+        self.easy_button.y = btn_y
+        self.normal_button.y = btn_y
+        self.hard_button.y = btn_y
+        
+        # Botón de iniciar con efecto hover
+        start_hover = self.start_button.collidepoint(mouse_pos)
+        
+        self.draw_button(self.easy_button, self.GREEN if self.difficulty.lower() == "fácil" else self.DARK, "Fácil", hover=easy_hover)
+        self.draw_button(self.normal_button, self.YELLOW if self.difficulty.lower() == "normal" else self.DARK, "Normal", hover=normal_hover)
+        self.draw_button(self.hard_button, self.RED if self.difficulty.lower() == "difícil" else self.DARK, "Difícil", hover=hard_hover)
+        self.draw_button(self.start_button, self.LIGHT_BLUE if start_hover else self.BLUE, "JUGAR", hover=start_hover, solid=True)
         pygame.display.flip()

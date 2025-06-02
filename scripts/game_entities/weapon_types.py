@@ -16,7 +16,7 @@ class Submachine(Weapon):
         bullet_folder_url = os.path.join(WEAPONS_FOLDER, "weapon_1-submachine")
         super().__init__(x, y, self.get_directions(), bullet_folder_url, 5, direction=direction)
         self.shooting = False
-        self.max_munition = 150
+        self.max_munition = 250
         self.remaining_munition = self.max_munition
     
     def get_directions(self):
@@ -50,7 +50,7 @@ class Rifle(Weapon):
         bullet_folder_url = os.path.join(WEAPON_RIFLE_FOLDER)
         super().__init__(x, y, self.get_directions(), bullet_folder_url, 10, direction=direction)
         self.shooting = False
-        self.max_munition = 100
+        self.max_munition = 175
         self.remaining_munition = self.max_munition
     
     def get_directions(self):
@@ -84,7 +84,7 @@ class Shotgun(Weapon):
         bullet_folder_url = os.path.join(WEAPON_SHOTGUN_FOLDER)
         super().__init__(x, y, self.get_directions(), bullet_folder_url, 60, direction=direction)
         self.shooting = False
-        self.max_munition = 70
+        self.max_munition = 90
         self.remaining_munition = self.max_munition
     
     def get_directions(self):
@@ -118,7 +118,7 @@ class Raygun(Weapon):
         bullet_folder_url = os.path.join(WEAPON_RAYGUN_FOLDER)
         super().__init__(x, y, self.get_directions(), bullet_folder_url, 50, direction=direction)
         self.shooting = False
-        self.max_munition = 100
+        self.max_munition = 50
         self.remaining_munition = self.max_munition
     
     def get_directions(self):

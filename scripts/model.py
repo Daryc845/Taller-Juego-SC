@@ -13,7 +13,7 @@ class Model(IModel):
         self.game_model.reset_game(difficulty)
         self.presenter.show_character(self.game_model.environment.character)
         self.game_model.generate_enemies(lambda x, y: self.presenter.show_enemy(x, y),
-                                         lambda: self.presenter.on_new_wave())
+                                         lambda x: self.presenter.on_new_wave(x))
         self.game_model.verify_first_phase(next_phase_function=lambda: self.presenter.to_second_phase())
 
     def start_second_phase(self):

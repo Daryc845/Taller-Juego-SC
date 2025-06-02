@@ -41,14 +41,18 @@ class GameScene(IView, BaseScene):
         self.enemies_counter = 0
         self.preparing_second_phase = False
         self.couting_time = False
-        self.help_controls_counter = 500
+        self.help_controls_counter = 1000
         self.preparing_time = 0
+        self.leaved_weapons_timers = []
+        self.leaved_weapon_lifetime = 300
         self.add_chest_generation_points()
         self.torches : list[Torch] = []
         self.add_torch_generation_points()
+        self.current_wave = 1
         self.preparing_scene = NextPhaseLoadingScene((lambda: self.presenter.start_second_phase()), 
                                                      (lambda: self.next_phase_load()))
         self.preparing_new_wave = False
+        self.show_timed_message(f"OLEADA {self.current_wave}", 200)
 
     def add_chest_generation_points(self):
         """Añade puntos de generación del cofre en posiciones predefinidas."""
@@ -98,7 +102,7 @@ class GameScene(IView, BaseScene):
     def next_phase_load(self):
         self.leaved_weapons.clear()
         self.torches.clear()
-        self.add_random_torches(5)
+        self.add_random_torches(self.current_wave)
         for wp in self.character.weapons:
             wp.direction = self.character.prefab_data.direction
             wp.set_position(self.character.prefab_data.x, self.character.prefab_data.y - 35)
@@ -110,7 +114,7 @@ class GameScene(IView, BaseScene):
     def show_character(self, prefab_character: PrefabData):
         if self.character is None:
             self.character = Character(prefab_character)
-            self.add_random_torches(5)
+            self.add_random_torches(1)
         else:
             self.__reset_all()
         self.is_in_game = True
@@ -120,7 +124,7 @@ class GameScene(IView, BaseScene):
         self.character.reset_character()
         self.enemies.clear()
         self.leaved_weapons.clear()
-        self.add_random_torches(5)
+        self.add_random_torches(1)
         self.chest = None
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
@@ -152,7 +156,7 @@ class GameScene(IView, BaseScene):
         generation_point_index = int(self.presenter.get_random_between(0, len(self.chest_generation_points) - 1))
         selected_point = self.chest_generation_points[generation_point_index]
         chest_data = PrefabData(*selected_point, direction="down", life=1)
-        self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message, type)
+        self.chest = Chest(chest_data, self.show_timed_message, self.draw_character_message, type, self.add_leaved_weapon)
         
     def add_torch(self, x: int, y: int):
         """Añade una antorcha en la posición especificada"""
@@ -164,12 +168,17 @@ class GameScene(IView, BaseScene):
         if len(enemy) > 0:
             self.enemies.remove(enemy[0])
 
-    def on_new_wave(self):
+    def add_leaved_weapon(self, weapon: Weapon):
+        self.leaved_weapons.append(weapon)
+        self.leaved_weapons_timers.append(self.leaved_weapon_lifetime)
+
+    def on_new_wave(self, wave_number: int):
         self.preparing_new_wave = True
+        self.current_wave = wave_number
         def other_actions():
             time.sleep(1)
             self.torches.clear()
-            self.add_random_torches(5)
+            self.add_random_torches(wave_number)
             self.preparing_new_wave = False
         threading.Thread(target=other_actions, daemon=True).start()
 
@@ -256,6 +265,7 @@ class GameScene(IView, BaseScene):
             else:
                 wp.direction = "left"
                 self.leaved_weapons.append(wp)
+                self.leaved_weapons_timers.append(self.leaved_weapon_lifetime)
         if self.key_pressed[pygame.K_3] and not self.key_processed[pygame.K_3]:
             k3_pressed = True
             self.key_processed[pygame.K_3] = True
@@ -267,11 +277,20 @@ class GameScene(IView, BaseScene):
                     self.cannot_add_weapon = True
                 else:
                     self.leaved_weapons.pop(weapon_index)
+                    self.leaved_weapons_timers.pop(weapon_index)
+                    
+    def update_leaved_weapons(self):
+        for i in reversed(range(len(self.leaved_weapons_timers))):
+            self.leaved_weapons_timers[i] -= 1
+            if i < len(self.leaved_weapons) and self.leaved_weapons_timers[i] <= 0:
+                self.leaved_weapons.pop(i)
+                self.leaved_weapons_timers.pop(i)
 
     def update(self):
         if not self.preparing_second_phase:
             self.in_pause_handle()
         if not self.is_in_pause:
+            self.update_leaved_weapons()
             
             self.in_weapons_add_remove_handle()
             keys = pygame.key.get_pressed()
@@ -293,11 +312,9 @@ class GameScene(IView, BaseScene):
                 enemy.update_animation()
 
     def draw_cannot_leave_weapon(self):
-        x, y = self.character.prefab_data.x, self.character.prefab_data.y
-        text = self.text_font.render("No puedes soltar mas armas, debes tener al menos una", True, (0, 0, 0))
-        pygame.draw.rect(screen, (255, 255, 255), (x, y, text.get_width() + 10, text.get_height()))
-        screen.blit(text, (x + 5, y))
+        
         self.message_show_counter += 1
+        self.draw_character_message("No puedes soltar mas armas, debes tener al menos una")
         if self.message_show_counter > 70:
             self.message_show_counter = 0
             self.cannot_leave_weapon = False
@@ -387,11 +404,18 @@ class GameScene(IView, BaseScene):
         if self.preparing_new_wave:
             pygame.draw.rect(screen, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
             font = pygame.font.SysFont("Arial", 30, bold=True)
-            text = font.render("Nueva oleada", True, (255, 255, 255))
+            if not self.preparing_second_phase:
+                text = font.render("¡Nueva oleada!", True, (255, 255, 255))
+                self.show_timed_message(f"OLEADA {self.current_wave}", 200)
+            else:
+                text = font.render("¡Preparate!", True, (255, 255, 255))
+                self.show_timed_message(f"¡HAS SIDO CONVOCADO A UNA AUDIENCIA CON EL REY!", 300)
+                self.show_chest()
             x = (WIDTH - text.get_width()) // 2
             y = (HEIGHT - text.get_height()) // 2
             screen.blit(text, (x, y))
             pygame.display.flip()
+            
             return
         screen.blit(background_image, (0, 0))
         for wp in self.leaved_weapons:
@@ -418,11 +442,12 @@ class GameScene(IView, BaseScene):
             screen.blit(pause_text, (WIDTH//2 - pause_text.get_width()//2, HEIGHT//2 - pause_text.get_height()//2))
         if self.preparing_second_phase:
             now = int(time.time())
-            rest = 30 + self.preparing_time - now
+            rest = 20 + self.preparing_time - now
             if rest <= 0:
                 self.couting_time = False
+                self.add_random_torches(self.current_wave)
                 self.preparing_scene.start_thread()
-            preparing_text = self.text_font.render(f"Tiempo de abastecimiento restante: {rest} segundos", True, (255, 0, 0))
+            preparing_text = self.text_font.render(f"Tiempo de espera restante: {rest} segundos", True, (255, 0, 0))
             screen.blit(preparing_text, (WIDTH - preparing_text.get_width() - 20, 20))
         for enemy in self.enemies:
             enemy.draw(screen, in_pause=self.is_in_pause)
@@ -431,3 +456,4 @@ class GameScene(IView, BaseScene):
         if self.help_controls_counter > 0:
             self.draw_controls_help()
         pygame.display.flip()
+        pygame.display.update()
