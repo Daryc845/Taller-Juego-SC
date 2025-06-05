@@ -1,6 +1,7 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
 from scripts.model_scripts.numbers_model import NumbersModel
 from scripts.model_scripts.markov import MarkovNode, MarkovChain
+from scripts.model_scripts.random_walk import random_choice
 from scripts.model_scripts.montecarlo import montecarlo
 from typing import Callable
 import math
@@ -210,13 +211,8 @@ class GameModel:
             return "move", move if move else enemy.frame_direction
 
     def __two_dimension_random_walk(self, num):
-        if num <= 0.25:
-            return "left"
-        elif num > 0.25 and num <= 0.5:
-            return "up"
-        elif num > 0.5 and num <= 0.75:
-            return "right"
-        return "down"
+        directions = ["left", "up", "right", "down"]
+        return random_choice(directions, rand_num=self.__get_pseudo_random_number())
 
     def __calculate_melee_attack(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         ob_x, ob_y, ob_max_x, ob_min_x, ob_max_y, ob_min_y = observation_space

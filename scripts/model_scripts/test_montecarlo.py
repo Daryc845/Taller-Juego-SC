@@ -20,8 +20,7 @@ def test_sample_with_exact_probability_match():
     assert montecarlo(distribution, 0.4) == "Y"
 
 def test_sample_fallback_when_sum_less_than_1():
-    # If distribution doesn't sum to 1 (bad input), fallback should still return last
-    distribution = [("A", 0.3), ("B", 0.3)]  # total = 0.6
+    distribution = [("A", 0.3), ("B", 0.3)]
     assert montecarlo(distribution, 0.99) == "B"
 
 def test_sample_with_function_values():
