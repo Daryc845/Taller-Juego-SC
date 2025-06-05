@@ -1,6 +1,8 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
 from scripts.model_scripts.numbers_model import NumbersModel
 from scripts.model_scripts.markov import MarkovNode, MarkovChain
+from scripts.model_scripts.random_walk import random_choice
+from scripts.model_scripts.montecarlo import montecarlo
 from typing import Callable
 import math
 import time
@@ -95,25 +97,32 @@ class GameModel:
         self.environment.add_enemy(enemy)
         return enemy, type
 
+
     def __get_montecarlo_enemy_position(self):
-        num1 = self.__get_pseudo_random_number()
-        if num1 <= 0.25:
-            return 0, int(self.get_ni_number(0, self.environment.height))
-        elif num1 <= 0.5:
-            return self.environment.width, int(self.get_ni_number(0, self.environment.height))
-        elif num1 <= 0.75:
-            return int(self.get_ni_number(0, self.environment.width)), self.environment.height
-        else:
-            return int(self.get_ni_number(0, self.environment.width)), 0
+        num = self.__get_pseudo_random_number()
+        height = self.environment.height
+        width = self.environment.width
+
+        position_distribution = [
+            (lambda: (0, int(self.get_ni_number(0, height))), 0.25),
+            (lambda: (width, int(self.get_ni_number(0, height))), 0.25),
+            (lambda: (int(self.get_ni_number(0, width)), height), 0.25),
+            (lambda: (int(self.get_ni_number(0, width)), 0), 0.25)
+        ]
+
+        selected_position = montecarlo(position_distribution, num)
+        return selected_position()
+
 
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()
-        if num <= 0.45:
-            return "type1", 150, 7
-        elif num <= 0.8:
-            return "type2", 125, 9
-        else:
-            return "type3", 100, 4
+        enemy_distribution = [
+            (("type1", 150, 7), 0.45),
+            (("type2", 125, 9), 0.35),
+            (("type3", 100, 4), 0.20)
+        ]
+        return montecarlo(enemy_distribution, num)
+    
 
     def generate_final_enemy(self):
         life = 2000
@@ -202,13 +211,8 @@ class GameModel:
             return "move", move if move else enemy.frame_direction
 
     def __two_dimension_random_walk(self, num):
-        if num <= 0.25:
-            return "left"
-        elif num > 0.25 and num <= 0.5:
-            return "up"
-        elif num > 0.5 and num <= 0.75:
-            return "right"
-        return "down"
+        directions = ["left", "up", "right", "down"]
+        return random_choice(directions, rand_num=self.__get_pseudo_random_number())
 
     def __calculate_melee_attack(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         ob_x, ob_y, ob_max_x, ob_min_x, ob_max_y, ob_min_y = observation_space
@@ -324,23 +328,22 @@ class GameModel:
     
     def __get_montecarlo_damage(self):
         num = self.__get_pseudo_random_number()
-        if num <= 0.5:
-            return 2
-        elif num <= 0.85:
-            return 1
-        else:
-            return 0
+        damage_distribution = [
+            (2, 0.5),   # 50% probabilidad de hacer 2 de daño
+            (1, 0.35),  # 35% probabilidad de hacer 1 de daño
+            (0, 0.15)   # 15% probabilidad de no hacer daño
+        ]
+        return montecarlo(damage_distribution, num)
         
     def __get_montecarlo_weapon(self):
         num = self.__get_pseudo_random_number()
-        if num < 0.5:
-            return "submachine"
-        elif num < 0.8:
-            return "rifle"
-        elif num < 0.95:
-            return "shotgun"
-        else:
-            return "raygun"
+        weapon_distribution = [
+            ("submachine", 0.5),
+            ("rifle", 0.3),
+            ("shotgun", 0.15),
+            ("raygun", 0.05)
+        ]
+        return montecarlo(weapon_distribution, num)
         
     markov_reward = {
         "munition":{'munition': 0.3, 'health': 0.3, 'weapon': 0.4},
