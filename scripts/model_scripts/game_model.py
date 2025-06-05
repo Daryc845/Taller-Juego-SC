@@ -1,5 +1,6 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
 from scripts.model_scripts.numbers_model import NumbersModel
+from scripts.model_scripts.markov import MarkovNode, MarkovChain
 from typing import Callable
 import math
 import time
@@ -347,6 +348,30 @@ class GameModel:
         "weapon":{'munition': 0.35, 'health': 0.55, 'weapon': 0.1}
     }
 
+        
+    def init_markov_chain(self):
+    # Crea la matriz de nodos (cada fila representa el estado actual)
+        munition_row = [
+            MarkovNode(state="munition", probability=0.3),
+            MarkovNode(state="health", probability=0.3),
+            MarkovNode(state="weapon", probability=0.4),
+        ]
+        health_row = [
+            MarkovNode(state="munition", probability=0.3),
+            MarkovNode(state="health", probability=0.2),
+            MarkovNode(state="weapon", probability=0.5),
+        ]
+        weapon_row = [
+            MarkovNode(state="munition", probability=0.35),
+            MarkovNode(state="health", probability=0.55),
+            MarkovNode(state="weapon", probability=0.1),
+        ]
+
+        self.chain = MarkovChain(
+            markov_nodes=[munition_row, health_row, weapon_row],
+            initial_state=munition_row[0]  # puede ser cualquiera
+        )
+        self.reward_states = ["munition", "health", "weapon"]
     current_reward = "munition" # estado inicial en munition
 
     def __get_reward(self):
@@ -360,6 +385,12 @@ class GameModel:
         else:
             self.current_reward = "weapon"
             return "weapon"
+        
+
+    def __get_reward_2(self):
+        num = self.__get_pseudo_random_number()
+        self.chain.set_state(num)
+        return self.chain.current_state.state
         
     def __get_chest_type(self):
         type = self.__get_reward()
