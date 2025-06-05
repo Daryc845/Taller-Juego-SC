@@ -22,6 +22,7 @@ class GameModel:
         self.waves = 3
         self.waves_waiting_time = 3
         self.waiting_time_in_last_wave = 2
+        self.__init_markov_chain()
 
     def reset_game(self, difficulty: str):
         self.terminate = False
@@ -113,7 +114,6 @@ class GameModel:
         selected_position = montecarlo(position_distribution, num)
         return selected_position()
 
-
     def __get_montecarlo_enemy(self):
         num = self.__get_pseudo_random_number()
         enemy_distribution = [
@@ -122,7 +122,6 @@ class GameModel:
             (("type3", 100, 4), 0.20)
         ]
         return montecarlo(enemy_distribution, num)
-    
 
     def generate_final_enemy(self):
         life = 2000
@@ -345,55 +344,33 @@ class GameModel:
         ]
         return montecarlo(weapon_distribution, num)
         
-    markov_reward = {
-        "munition":{'munition': 0.3, 'health': 0.3, 'weapon': 0.4},
-        "health":{'munition': 0.3, 'health': 0.2, 'weapon': 0.5},
-        "weapon":{'munition': 0.35, 'health': 0.55, 'weapon': 0.1}
-    }
-
-        
-    def init_markov_chain(self):
+    def __init_markov_chain(self):
     # Crea la matriz de nodos (cada fila representa el estado actual)
         munition_row = [
-            MarkovNode(state="munition", probability=0.3),
-            MarkovNode(state="health", probability=0.3),
-            MarkovNode(state="weapon", probability=0.4),
+            MarkovNode(value="munition", state=1, probability=0.3),
+            MarkovNode(value="health", state=2, probability=0.3),
+            MarkovNode(value="weapon", state=3,probability=0.4),
         ]
         health_row = [
-            MarkovNode(state="munition", probability=0.3),
-            MarkovNode(state="health", probability=0.2),
-            MarkovNode(state="weapon", probability=0.5),
+            MarkovNode(value="munition", state=1, probability=0.3),
+            MarkovNode(value="health", state=2, probability=0.2),
+            MarkovNode(value="weapon", state=3, probability=0.5),
         ]
         weapon_row = [
-            MarkovNode(state="munition", probability=0.35),
-            MarkovNode(state="health", probability=0.55),
-            MarkovNode(state="weapon", probability=0.1),
+            MarkovNode(value="munition", state=1, probability=0.35),
+            MarkovNode(value="health", state=2, probability=0.55),
+            MarkovNode(value="weapon", state=3, probability=0.1),
         ]
 
         self.chain = MarkovChain(
             markov_nodes=[munition_row, health_row, weapon_row],
             initial_state=munition_row[0]  # puede ser cualquiera
         )
-        self.reward_states = ["munition", "health", "weapon"]
-    current_reward = "munition" # estado inicial en munition
 
     def __get_reward(self):
         num = self.__get_pseudo_random_number()
-        if num <= self.markov_reward[self.current_reward]["munition"]:
-            self.current_reward = "munition"
-            return "munition"
-        elif num <= self.markov_reward[self.current_reward]["munition"] + self.markov_reward[self.current_reward]["health"]:
-            self.current_reward = "health"
-            return "health"
-        else:
-            self.current_reward = "weapon"
-            return "weapon"
-        
-
-    def __get_reward_2(self):
-        num = self.__get_pseudo_random_number()
         self.chain.set_state(num)
-        return self.chain.current_state.state
+        return self.chain.current_state.value
         
     def __get_chest_type(self):
         type = self.__get_reward()

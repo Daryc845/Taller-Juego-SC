@@ -1,20 +1,21 @@
 
 # nodo de markov que contiene estado actual, probabilidad y rangos de probabilidad de cambio de estado
 class MarkovNode():
-    def __init__(self, state, probability):
+    def __init__(self, value:str, state:int, probability:float):
+        self.value = value
         self.state = state
         self.probability = probability
-        self.probability_range = []
+        self.probability_range: list[float] = []
     # calcula los rangos de probabilidad para el nodo de markov
     def calculate_probability_range(self, previous_probability=0):
        self.probability_range = [previous_probability, previous_probability + self.probability]
     
 # cadena de markov que contiene los nodos de markov y el estado actual
 class MarkovChain():
-    def __init__(self, markov_nodes : list[list], initial_state):
+    def __init__(self, markov_nodes : list[list[MarkovNode]], initial_state:MarkovNode):
         self.markov_nodes = markov_nodes
-        self.current_state = initial_state
-        self.previous_state = initial_state
+        self.current_state : MarkovNode = initial_state
+        self.previous_state : MarkovNode = initial_state
         self.init_probability_ranges()
 
     # Inicializa los rangos de probabilidad para cada nodo de markov
@@ -29,7 +30,8 @@ class MarkovChain():
     
     # Establece el estado actual de la cadena de markov basado en una probabilidad nueva
     def set_state(self, prob_new_state):
-        for node_markov in self.markov_nodes[self.current_state.state -1]:
+        list_it : list[MarkovNode] = self.markov_nodes[self.current_state.state -1]
+        for node_markov in list_it:
             if prob_new_state >= node_markov.probability_range[0] and prob_new_state <= node_markov.probability_range[1]:
                 self.previous_state = self.current_state
                 self.current_state = node_markov
