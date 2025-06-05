@@ -1,10 +1,13 @@
 import pygame
 import os
-from scripts.game_configs import SCALE_FACTOR
+from scripts.game_configs import SCALE_FACTOR, RESOURCES_FOLDER
 
 images = {}
 animations_list = {}
 idles_list = {}
+
+current_sound : pygame.mixer.Sound = None
+sound_list = {}
 
 # --- Load Animations ---
 def load_animations(directions: dict[str, str]):
@@ -89,3 +92,16 @@ def load_image(path: str) -> pygame.Surface:
     )
     images[path] = image
     return image
+
+def load_sound_and_play(filename: str):
+    global current_sound
+    if filename in sound_list:
+        current_sound.fadeout(2000)
+        current_sound = sound_list[filename]
+        current_sound.play(-1)
+        return
+    if current_sound:
+        current_sound.fadeout(2000)
+    current_sound = pygame.mixer.Sound(os.path.join(RESOURCES_FOLDER, "sounds", filename))
+    current_sound.play(-1)
+    sound_list[filename] = current_sound

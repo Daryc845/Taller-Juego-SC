@@ -33,18 +33,3 @@ background_image = pygame.image.load(os.path.join(RESOURCES_FOLDER, "backgrounds
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))  # Ajustar al tamaño de la pantalla
 initial_background_image = pygame.image.load(os.path.join(RESOURCES_FOLDER, "backgrounds", "presentation_bg.png"))
 initial_background_image = pygame.transform.scale(initial_background_image, (WIDTH, HEIGHT))  # Ajustar al tamaño de la pantalla
-pygame.mixer.music.load(os.path.join(RESOURCES_FOLDER, "sounds", "intro.mp3"))
-pygame.mixer.music.play(-1)
-is_intro_playing = True
-
-def stop_intro():
-    global is_intro_playing
-    if is_intro_playing:
-        pygame.mixer.music.fadeout(2000)
-        is_intro_playing = False
-
-def reset_intro():
-    global is_intro_playing
-    if not is_intro_playing:
-        pygame.mixer.music.play(-1)
-        is_intro_playing = True

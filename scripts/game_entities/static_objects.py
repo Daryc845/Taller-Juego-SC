@@ -42,6 +42,9 @@ class Chest(StaticObject):
         self.blink_interval = 10
         self.blink_visible = True
         self.type = type
+        self.current_frame = 0
+        self.cycle_count = 0
+        self.is_alive = True
     
     def update(self, character):
         """
@@ -84,11 +87,6 @@ class Chest(StaticObject):
         #METODO MONTECARLO PARA SELECCIONAR EL ARMA
         else:
             self.select_weapon()
-        
-    def show_chest(self, x, y):
-        self.prefab_data.x = x
-        self.prefab_data.y = y
-        self.is_alive = True
     
     def open_chest(self):
         if self.open_delay == 0:

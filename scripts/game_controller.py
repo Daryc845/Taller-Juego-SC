@@ -1,8 +1,9 @@
-from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT, stop_intro
+from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
 from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, FinalEnemy, Enemy, Weapon, Chest, Torch
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
 from scripts.game_scenes import StartScene, BaseScene, NextPhaseLoadingScene
+from scripts.game_persistence import load_sound_and_play
 import pygame
 import time
 import threading
@@ -119,7 +120,7 @@ class GameScene(IView, BaseScene):
             self.__reset_all()
         self.is_in_game = True
         self.show_timed_message(f"OLEADA {self.current_wave}", 200)
-        stop_intro()
+        threading.Thread(target=load_sound_and_play, args=("oleadas.mp3",), daemon=True).start()
 
     def __reset_all(self):
         self.torches.clear()
@@ -135,7 +136,6 @@ class GameScene(IView, BaseScene):
         self.preparing_time = 0
         self.preparing_new_wave = False
         self.help_controls_counter = 1000
-        self.can_show_chest = False
 
     def do_enemy_attack(self, with_move, enemy_id, attack_type):
         res = list(filter(lambda x: x.prefab_data.id == enemy_id, self.enemies))
@@ -160,7 +160,6 @@ class GameScene(IView, BaseScene):
         selected_point = self.chest_generation_points[generation_point_index]
         self.chest.show_chest(*selected_point)"""
         self.generate_chest(type)
-        self.can_show_chest = True
         
     def generate_chest(self, type: str):
         """Genera un cofre en una posición aleatoria de los puntos de generación predefinidos"""
@@ -201,8 +200,8 @@ class GameScene(IView, BaseScene):
     def character_death(self):
         self.start_scene.game_over = True
         self.start_scene.next_scene = None
-        self.start_scene.draw()
         self.is_in_game = False
+        threading.Thread(target=load_sound_and_play, args=("intro.mp3",), daemon=True).start()
 
     def to_second_phase(self):
         self.preparing_second_phase = True
@@ -210,6 +209,7 @@ class GameScene(IView, BaseScene):
         self.preparing_time = int(time.time())
 
     def run_game(self):
+        load_sound_and_play("intro.mp3")
         while True:
             if not self.couting_time and self.preparing_second_phase:
                 self.preparing_scene.play(other_actions=lambda: self.presenter.quit_game())
@@ -248,6 +248,7 @@ class GameScene(IView, BaseScene):
         self.start_scene.game_over = False
         self.start_scene.game_won = True
         self.start_scene.final_points = obtain_points
+        threading.Thread(target=load_sound_and_play, args=("intro.mp3",), daemon=True).start()
 
     def handle_events(self, other_actions=None):
         super().handle_events(other_actions=other_actions)
@@ -438,7 +439,7 @@ class GameScene(IView, BaseScene):
             torch.draw(screen)
         self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
         
-        if self.chest and self.can_show_chest:
+        if self.chest:
             if self.character.prefab_data.y > self.chest.prefab_data.y * 0.99:
                 self.chest.draw(screen, self.character)
                 self.character.draw(screen, self.draw_character_message, in_pause=self.is_in_pause)
@@ -460,6 +461,7 @@ class GameScene(IView, BaseScene):
                 self.couting_time = False
                 self.add_random_torches(self.current_wave)
                 self.preparing_scene.start_thread()
+                threading.Thread(target=load_sound_and_play, args=("boss.mp3",), daemon=True).start()
             preparing_text = self.text_font.render(f"Tiempo de espera restante: {rest} segundos", True, (255, 0, 0))
             screen.blit(preparing_text, (WIDTH - preparing_text.get_width() - 20, 20))
         for enemy in self.enemies:
