@@ -1,4 +1,4 @@
-from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT
+from scripts.game_configs import FPS, screen, background_image, clock, WIDTH, HEIGHT, stop_intro
 from scripts.game_entities import Character, EnemyType1, EnemyType2, EnemyType3, FinalEnemy, Enemy, Weapon, Chest, Torch
 from scripts.intefaces import IView, IPresenter
 from scripts.game_entities.data_models import PrefabData
@@ -119,6 +119,7 @@ class GameScene(IView, BaseScene):
             self.__reset_all()
         self.is_in_game = True
         self.show_timed_message(f"OLEADA {self.current_wave}", 200)
+        stop_intro()
 
     def __reset_all(self):
         self.torches.clear()

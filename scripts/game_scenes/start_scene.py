@@ -1,7 +1,7 @@
 import pygame
 from scripts.game_scenes.base_scene import BaseScene
 from scripts.game_scenes.loading_scene import LoadingScene
-from scripts.game_configs import WIDTH, HEIGHT, screen, initial_background_image, HARD_DIFFICULTY, NORMAL_DIFFICULTY, EASY_DIFFICULTY
+from scripts.game_configs import WIDTH, HEIGHT, screen, initial_background_image, HARD_DIFFICULTY, NORMAL_DIFFICULTY, EASY_DIFFICULTY, reset_intro
 import sys
 
 class StartScene(BaseScene):
@@ -58,6 +58,10 @@ class StartScene(BaseScene):
                     self.difficulty = HARD_DIFFICULTY
                 elif self.start_button.collidepoint(mouse_pos):
                     self.next_scene = LoadingScene(self.difficulty, self.load_function)
+
+    def play(self, other_actions=None):
+        reset_intro()
+        super().play(other_actions=other_actions)
 
     def update(self):
         pass

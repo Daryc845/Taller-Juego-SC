@@ -137,7 +137,7 @@ class ShooterEnemy(Enemy, ABC):
                 self.prefab_data.x + (40 if "right" in self.prefab_data.frame_direction else -40),
                 self.prefab_data.y - 40,
                 self.get_shoot_damage(),
-                self.prefab_data.direction,
+                self.prefab_data.direction if self.prefab_data.frame_direction == self.prefab_data.direction else self.prefab_data.frame_direction,
                 self.get_shoot_type()
             )
             self.prefab_data.attacks.append(data)

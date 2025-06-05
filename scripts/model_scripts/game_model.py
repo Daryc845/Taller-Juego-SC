@@ -256,13 +256,13 @@ class GameModel:
                          delete_enemy_function: Callable[[int], None], 
                          character_death_function: Callable[[], None]):
         character_shoots = list(filter(lambda x: x.alive, self.environment.character.attacks))
-        enemies_death: list[PrefabData] = []
         for shoot in character_shoots:
             for en in self.environment.enemies:
                 if self.__verify_shoot_damage(shoot, en, True):
                     shoot.alive = False
                     if en.life <= 0:
-                        enemies_death.append(en)
+                        self.environment.enemies.remove(en)
+                        delete_enemy_function(en.id)
                         self.environment.character_points += 10
                         self.environment.total_character_points += 10                
                         if self.environment.character_points == 20:
@@ -279,10 +279,6 @@ class GameModel:
                         self.terminate = True
                 elif shoot.type == "melee":
                     shoot.alive = False
-        for en in enemies_death:
-            if en in self.environment.enemies: 
-                self.environment.enemies.remove(en)
-            delete_enemy_function(en.id)
 
     def __get_pseudo_random_number(self):
         return self.numbers_model.get_next_pseudo_random_number()
