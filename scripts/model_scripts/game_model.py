@@ -1,6 +1,7 @@
 from scripts.game_entities.data_models import PrefabData, EnvironmentData, AttackData
 from scripts.model_scripts.numbers_model import NumbersModel
 from scripts.model_scripts.markov import MarkovNode, MarkovChain
+from scripts.model_scripts.waiting_lines import WaitingLinesArrival
 from scripts.model_scripts.random_walk import random_choice
 from scripts.model_scripts.montecarlo import montecarlo
 from typing import Callable
@@ -17,18 +18,19 @@ class GameModel:
         self.in_pause = False
         self.terminate = False
         self.enemies_counter = 0
-        self.lambda_value = 5 # valor de lamda en llegadas/minuto
         self.default_enemies = 5
         self.waves = 3
         self.waves_waiting_time = 3
         self.waiting_time_in_last_wave = 2
         self.__init_markov_chain()
+        self.waiting_lines_arrival = WaitingLinesArrival(5) # valor default 5 de lamda en llegadas/minuto
 
     def reset_game(self, difficulty: str):
         self.terminate = False
         self.environment.reset_environment()
         self.numbers_model.init_numbers()
-        self.lambda_value = 6 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 4
+        lambda_value = 6 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 4
+        self.waiting_lines_arrival.lambda_value = lambda_value
         self.default_enemies = 7 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 3
         self.waves = 9 if difficulty == HARD_DIFFICULTY else 5 if difficulty == NORMAL_DIFFICULTY else 2
 
@@ -72,8 +74,6 @@ class GameModel:
                 time.sleep(self.waiting_time_in_last_wave)
 
     def __waiting_lines_enemies_generation(self, enemy_generation_function: Callable[[PrefabData, str], None], enemies_amount: int):
-        #at = 0
-        iat = 0
         enemy_counter = 0
         while enemy_counter < enemies_amount:
             if self.terminate:
@@ -84,9 +84,7 @@ class GameModel:
             enemy_generation_function(en, type)
             enemy_counter += 1
             ri = self.__get_pseudo_random_number()
-            iat = - math.log(1 - ri, math.e) / self.lambda_value
-            segs = iat * 60 # minutos a segundos
-            #at += iat
+            segs = self.waiting_lines_arrival.next_arrival_interval_time(ri) * 60 # minutos a segundos
             time.sleep(segs)
 
     def generate_enemy(self):
