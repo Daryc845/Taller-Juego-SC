@@ -1,7 +1,11 @@
-# scripts/model_scripts/test_random_walk.py
-
 import pytest
 from scripts.model_scripts.random_walk import random_choice
+import sys
+from unittest.mock import MagicMock
+
+sys.modules['pygame'] = MagicMock()
+sys.modules['tkinter'] = MagicMock()
+sys.modules['scripts.game_configs'] = MagicMock()
 
 def test_random_choice_uniform():
     states = ["a", "b", "c", "d"]

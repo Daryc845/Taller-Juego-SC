@@ -1,4 +1,10 @@
 from scripts.model_scripts.markov import MarkovNode, MarkovChain
+import sys
+from unittest.mock import MagicMock
+
+sys.modules['pygame'] = MagicMock()
+sys.modules['tkinter'] = MagicMock()
+sys.modules['scripts.game_configs'] = MagicMock()
 
 def test_markov_node_probability_range():
     node = MarkovNode(value="test1", state=1, probability=0.4)

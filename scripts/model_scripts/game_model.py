@@ -207,9 +207,10 @@ class GameModel:
             move = self.__calculate_move_direction(x_diff, y_diff, x_width, speed=enemy.speed)
             return "move", move if move else enemy.frame_direction
 
-    def __two_dimension_random_walk(self, num):
-        directions = ["left", "up", "right", "down"]
-        return random_choice(directions, rand_num=self.__get_pseudo_random_number())
+    directions = ["left", "up", "right", "down"]
+    
+    def __two_dimension_random_walk(self):
+        return random_choice(self.directions, rand_num=self.__get_pseudo_random_number())
 
     def __calculate_melee_attack(self, enemy: PrefabData, observation_space: tuple[int, int, int, int, int, int]):
         ob_x, ob_y, ob_max_x, ob_min_x, ob_max_y, ob_min_y = observation_space

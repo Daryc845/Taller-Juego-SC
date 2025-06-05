@@ -1,5 +1,10 @@
-import pytest
 from scripts.model_scripts.montecarlo import montecarlo
+import sys
+from unittest.mock import MagicMock
+
+sys.modules['pygame'] = MagicMock()
+sys.modules['tkinter'] = MagicMock()
+sys.modules['scripts.game_configs'] = MagicMock()
 
 def test_sample_returns_expected_value_in_range():
     distribution = [("A", 0.5), ("B", 0.3), ("C", 0.2)]

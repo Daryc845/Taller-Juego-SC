@@ -40,7 +40,7 @@ class TestGameModel:
         assert game_model.in_pause == False
         assert game_model.terminate == False
         assert game_model.enemies_counter == 0
-        assert game_model.lambda_value == 5
+        assert game_model.waiting_lines_arrival.lambda_value == 5
         assert game_model.default_enemies == 5
         assert game_model.waves == 3
         assert game_model.environment is not None
@@ -51,7 +51,7 @@ class TestGameModel:
         game_model.reset_game(NORMAL_DIFFICULTY)
         
         assert game_model.terminate == False
-        assert game_model.lambda_value == 5
+        assert game_model.waiting_lines_arrival.lambda_value == 5
         assert game_model.default_enemies == 5
         assert game_model.waves == 5
 
@@ -60,7 +60,7 @@ class TestGameModel:
         game_model.reset_game(HARD_DIFFICULTY)
         
         assert game_model.terminate == False
-        assert game_model.lambda_value == 6
+        assert game_model.waiting_lines_arrival.lambda_value == 6
         assert game_model.default_enemies == 7
         assert game_model.waves == 9
 
@@ -69,7 +69,7 @@ class TestGameModel:
         game_model.reset_game(EASY_DIFFICULTY)
         
         assert game_model.terminate == False
-        assert game_model.lambda_value == 4
+        assert game_model.waiting_lines_arrival.lambda_value == 4
         assert game_model.default_enemies == 3
         assert game_model.waves == 2
 
@@ -436,21 +436,21 @@ class TestGameModel:
         with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.2):
             reward = game_model._GameModel__get_reward()
             assert reward == "munition"
-            assert game_model.current_reward == "munition"
+            assert game_model.chain.current_state.value == "munition"
         
         # Desde munition a health
         game_model.current_reward = "munition"
         with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.5):
             reward = game_model._GameModel__get_reward()
             assert reward == "health"
-            assert game_model.current_reward == "health"
+            assert game_model.chain.current_state.value == "health"
         
         # Desde munition a weapon
         game_model.current_reward = "munition"
         with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.8):
             reward = game_model._GameModel__get_reward()
             assert reward == "weapon"
-            assert game_model.current_reward == "weapon"
+            assert game_model.chain.current_state.value == "weapon"
 
     def test_get_chest_type_weapon(self, game_model: GameModel):
         """Prueba get_chest_type cuando se obtiene un arma"""
@@ -467,10 +467,14 @@ class TestGameModel:
 
     def test_two_dimension_random_walk(self, game_model: GameModel):
         """Prueba two_dimension_random_walk"""
-        assert game_model._GameModel__two_dimension_random_walk(0.1) == "left"
-        assert game_model._GameModel__two_dimension_random_walk(0.3) == "up"
-        assert game_model._GameModel__two_dimension_random_walk(0.6) == "right"
-        assert game_model._GameModel__two_dimension_random_walk(0.8) == "down"
+        with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.1):
+            assert game_model._GameModel__two_dimension_random_walk() == "left"
+        with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.3):
+            assert game_model._GameModel__two_dimension_random_walk() == "up"
+        with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.6):
+            assert game_model._GameModel__two_dimension_random_walk() == "right"
+        with patch.object(game_model, '_GameModel__get_pseudo_random_number', return_value=0.8):
+            assert game_model._GameModel__two_dimension_random_walk() == "down"
 
     def test_verify_and_get_shoot_interval_center_hit(self, game_model: GameModel):
         """Prueba verify_and_get_shoot_interval con impacto central"""
