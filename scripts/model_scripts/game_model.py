@@ -166,8 +166,7 @@ class GameModel:
             return action, None
         enemy.in_strategy = (enemy.life / enemy.max_life) > 0.7 and not self.__is_close_to_player(ob_x, ob_y, x, enemy.y, x_width)
         if enemy.in_strategy:
-            num = self.__get_pseudo_random_number()
-            return "move", self.__two_dimension_random_walk(num)
+            return "move", self.__two_dimension_random_walk()
         else:
             x_diff = ob_x - x
             y_diff = ob_y - enemy.y
@@ -199,8 +198,7 @@ class GameModel:
         enemy.genration_enemies_counter += 1
         enemy.in_strategy = (enemy.life / enemy.max_life) > 0.7 and not self.__is_close_to_player(ob_x, ob_y, x_melee, enemy.y, x_width)
         if enemy.in_strategy:
-            num = self.__get_pseudo_random_number()
-            return "move", self.__two_dimension_random_walk(num)
+            return "move", self.__two_dimension_random_walk()
         else:
             x_diff = ob_x - x_melee
             y_diff = ob_y - enemy.y
